@@ -19,7 +19,7 @@ export class Record {
     return observable;
   }
 
-  public record(path: string): DeepstreamListObservable<any> {
+  public record(path: string): DeepstreamRecordObservable<any> {
     let record = this.dsClient.record.getRecord(path);
     
     let observable = DeepstreamRecordObservable.create((obs: Observer<any>) => {
