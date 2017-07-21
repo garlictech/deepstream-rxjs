@@ -1,12 +1,20 @@
-import { Observable } from 'rxjs';
+import { 
+  Observable,
+  Subscriber,
+  Subscription
+} from 'rxjs';
 
 export class DeepstreamListObservable<T> extends Observable<T> {
-  constructor(subscribe?: <R>(subscriber: Subscriber<R>) => Subscription | Function | void, protected client: any, public list: any) {
+  constructor(subscribe?: <R>(subscriber: Subscriber<R>) => Subscription | Function | void, protected client?: any, public list?: any) {
     super(subscribe);
   }
 
-  push(value: any): Promise {
-    return new Promise((resolve, reject) => {
+  push(value: any): Promise<void> {
+    return new Promise<void>((resolve, reject) => {
+      if (!this.list) {
+        return reject(new Error('Observable without list'));
+      }
+
       this.list.whenReady(() => {
         let id = `${this.list.name}/${this.client.getUid()}`;
 
@@ -23,8 +31,12 @@ export class DeepstreamListObservable<T> extends Observable<T> {
     });
   }
 
-  protected createRecord(path: string, value: any): Promise) {
-    return new Promise((resolve, reject) => {
+  protected createRecord(path: string, value: any): Promise<void> {
+    return new Promise<void>((resolve, reject) => {
+      if (!this.client) {
+        return reject(new Error('Observable without deepstream client'));
+      }
+
       let record = this.client.record.getRecord(path);
 
       record.whenReady(() => {
