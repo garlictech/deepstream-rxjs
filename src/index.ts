@@ -19,7 +19,7 @@ export class DeepstreamRxjs {
 
   public login(data: any): Promise<void> {
     return new Promise<void>((resolve, reject) => {
-      this.ds
+      this.client
         .login(data, success => {
           if (success === true) {
             resolve();
