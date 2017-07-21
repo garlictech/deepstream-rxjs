@@ -5,7 +5,7 @@ import {
 } from 'rxjs';
 
 export class DeepstreamRecordObservable<T> extends Observable<T> {
-  constructor(subscribe?: <R>(subscriber: Subscriber<R>) => Subscription | Function | void, public record?: any) {
+  constructor(subscribe?: <R>(subscriber: Subscriber<R>) => Subscription | Function | void, public record?: deepstreamIO.Record) {
     super(subscribe);
   }
 

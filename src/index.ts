@@ -1,18 +1,17 @@
 import { Record } from './record';
-
-declare var deepstream:any;
+import * as deepstream from 'deepstream.io-client-js';
 
 export class DeepstreamRxjs {
   private _record: Record;
-  protected ds: any;
+  protected client: deepstreamIO.deepstreamQuarantine;
 
   public constructor(connectionString: string) {
-    this.ds = deepstream(connectionString);
+    this.client = deepstream(connectionString);
   }
 
   public get record(): Record {
     if (!this._record) {
-      this._record = new Record(this.ds);
+      this._record = new Record(this.client);
     }
 
     return this._record;
