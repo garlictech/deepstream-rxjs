@@ -1,0 +1,19 @@
+{
+  "name": "deepstream-rxjs-record",
+  "version": "0.0.1",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": {
+    "name": "Garlictech",
+    "email": "contact@garlictech.com",
+    "url": "http://www.garlictech.com"
+  },
+  "license": "SEE LICENSE IN license.txt",
+  "dependencies": {
+    "deepstream.io-client-js": "^2.2.1",
+    "rxjs": "^5.4.2"
+  }
+}
