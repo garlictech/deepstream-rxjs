@@ -10,6 +10,13 @@
           "es6",
           "dom"
         ],
+        "typeRoots": [
+          "node_modules/@types",
+          "node_modules/deepstream.io-client-js/src/client.d.ts"
+        ],
+        "types": [
+          "deepstream.io-client-js"
+        ],
         "noImplicitAny": false,
         "sourceMap": false
     },

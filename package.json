@@ -1,6 +1,6 @@
 {
   "name": "@garlictech/deepstream-rxjs-record",
-  "version": "0.0.2",
+  "version": "0.0.6",
   "description": "",
   "main": "dist/index.js",
   "typings": "dist/index.d.ts",
