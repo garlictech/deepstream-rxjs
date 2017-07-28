@@ -8,11 +8,20 @@ export class Record {
 
   public list(path: string): DeepstreamListObservable<DeepstreamRecordObservable<any>[]> {
     let list = this.client.record.getList(path);
+    let isQuery = path.indexOf('search?') !== -1;
+    let listName;
+
+    if (isQuery) {
+      let queryString = path.split('search?')[1];
+      let parsed = JSON.parse(queryString);
+      listName = parsed.table;
+    }
     
     let observable = DeepstreamListObservable.create((obs: Observer<DeepstreamRecordObservable<any>[]>) => {
       list.subscribe((paths) => {
         let records = paths.map((path) => {
-          return this.record(path);
+          let recordPath = isQuery ? `${listName}/${path}` : path;
+          return this.record(recordPath);
         });
         
         obs.next(records);
