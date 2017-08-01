@@ -1,4 +1,5 @@
 import { Record } from './record';
+import { Observable, Observer } from 'rxjs';
 import * as deepstream from 'deepstream.io-client-js';
 
 export class DeepstreamRxjs {
@@ -17,17 +18,19 @@ export class DeepstreamRxjs {
     return this._record;
   }
 
-  public login(data: any): Promise<void> {
-    return new Promise<void>((resolve, reject) => {
-      this.client
-        .login(data, success => {
-          if (success === true) {
-            resolve();
-          } else {
-            reject(new Error('Login failed'));
-          }
-        });
-    });
+  public login(data: any): Observable<void> {
+    return Observable
+      .create((observer: Observer<void>) => {
+        this.client
+          .login(data, success => {
+            if (success === true) {
+              observer.next(undefined);
+              observer.complete();
+            } else {
+              observer.error(new Error('Login failed'));
+            }
+          });
+      });
   }
 
 }
