@@ -4,7 +4,7 @@ import * as deepstream from 'deepstream.io-client-js';
 
 export class DeepstreamRxjs {
   private _record: Record;
-  protected client: deepstreamIO.deepstreamQuarantine;
+  public client: deepstreamIO.deepstreamQuarantine;
 
   public constructor(connectionString: string) {
     this.client = deepstream(connectionString);
@@ -24,7 +24,7 @@ export class DeepstreamRxjs {
         this.client
           .login(data, success => {
             if (success === true) {
-              observer.next(undefined);
+              observer.next(data);
               observer.complete();
             } else {
               observer.error(new Error('Login failed'));
