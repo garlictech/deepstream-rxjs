@@ -1,7 +1,7 @@
 import { Client } from '..'
 import { EventEmitter } from "events"
 
-describe("Then deepstream client is up and running", () => {
+describe("The deepstream client is up and running", () => {
   class MockDeepstream extends EventEmitter {
     constructor() {super()}
     login = jasmine.createSpy("login")
@@ -15,7 +15,7 @@ describe("Then deepstream client is up and running", () => {
   beforeEach(() => {
     mockDeepstream = new MockDeepstream()
 
-    DeepstreamStub = jasmine.createSpy("DeepstreamStu").and.callFake(() => {
+    DeepstreamStub = jasmine.createSpy("DeepstreamStub").and.callFake(() => {
       return mockDeepstream
     })
   
@@ -29,7 +29,7 @@ describe("Then deepstream client is up and running", () => {
     expect(Client.GetDependencies).toHaveBeenCalled()
     expect(DeepstreamStub).toHaveBeenCalledWith(connectionString)
 
-    let subscripion = client.login(loginData).subscribe(() => {
+    client.login(loginData).subscribe(() => {
       expect(mockDeepstream.login).toHaveBeenCalledWith(loginData)
       done()
     })
@@ -39,11 +39,7 @@ describe("Then deepstream client is up and running", () => {
 
   it("should retry when some calls failed", (done) => {
     let client = new Client(connectionString)
-
-    let subscripion = client.login(loginData).subscribe(() => {
-      done()
-    })
-
+    let subscripion = client.login(loginData).subscribe(() => done())
     mockDeepstream.emit("connectionStateChanged", "ERROR")
     mockDeepstream.emit("connectionStateChanged", "ERROR")
     mockDeepstream.emit("error", "ERROR")
