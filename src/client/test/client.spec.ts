@@ -4,18 +4,18 @@ import { EventEmitter } from "events"
 describe("Then deepstream client is up and running", () => {
   class MockDeepstream extends EventEmitter {
     constructor() {super()}
-    login = jasmine.createSpy()
+    login = jasmine.createSpy("login")
   }
 
   let mockDeepstream
   let DeepstreamStub
-  let loginData = {providerName: "UNIT TEST PROVIDER"}
+  let loginData = {providerName: "UNIT TEST PROVIDER", jwtToken: "foobar"}
   let connectionString = "foobar"
   
   beforeEach(() => {
     mockDeepstream = new MockDeepstream()
 
-    DeepstreamStub = jasmine.createSpy().and.callFake(() => {
+    DeepstreamStub = jasmine.createSpy("DeepstreamStu").and.callFake(() => {
       return mockDeepstream
     })
   
