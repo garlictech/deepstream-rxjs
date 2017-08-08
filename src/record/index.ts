@@ -27,7 +27,15 @@ export class Record {
         obs.next(records);
       }, true);
 
-      return () => list.unsubscribe();
+      return () => {
+        if (isQuery) {
+          // Queries need to be deleted
+          list.delete();
+        } else {
+          // Normal deepstream lists just need to be unsubscribed from
+          list.unsubscribe();
+        }
+      }
     }, this.client, list);
 
     return observable;
