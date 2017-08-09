@@ -1,11 +1,11 @@
 import { Observable, Observer } from 'rxjs'
-import * as deepstream from 'deepstream.io-client-js'
+let deepstream = require('deepstream.io-client-js')
 
 import { Record } from '../record'
 import { IProviderConnectionData, IConnectionData } from '../interfaces'
 
 export class Client {
-  public client: deepstream.deepstreamQuarantine
+  public client
   private _record: Record
 
   static GetDependencies() {

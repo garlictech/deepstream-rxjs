@@ -1,6 +1,6 @@
 import { Client } from '..'
 import { EventEmitter } from "events"
-import * as deepstream from 'deepstream.io-client-js'
+let deepstream = require('deepstream.io-client-js')
 
 describe("The deepstream client is up and running", () => {
   class MockDeepstream extends EventEmitter {
