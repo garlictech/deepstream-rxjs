@@ -43,13 +43,18 @@ export class Client {
   }
 
   public logout() {
-    let obs$ = Observable.fromEvent(this.client, "connectionStateChanged")
-    .do(state => console.log("Closing client connection state: ", state))
-    .filter(state => state === 'CLOSED')
-    .take(1)
-    .do(() => console.log(`Deepstream client is logged out`))
-    this.client.close()
-    return obs$
+    if (this.client) {
+      let obs$ = Observable.fromEvent(this.client, "connectionStateChanged")
+      .do(state => console.log("Closing client connection state: ", state))
+      .filter(state => state === 'CLOSED')
+      .take(1)
+      .do(() => console.log(`Deepstream client is logged out`))
+      
+      this.client.close()
+      return obs$
+    } else {
+      return Observable.of({})
+    }
   }
 
   public isConnected(): boolean {

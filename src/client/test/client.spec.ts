@@ -68,4 +68,10 @@ describe("The deepstream client is up and running", () => {
 
     mockDeepstream.emit("connectionStateChanged", "OPEN")
   })
+
+  it ("should handle logout even before the first login", (done) => {
+    let client = new Client(connectionString)
+    client.logout()
+    .subscribe(() => done())
+  })
 })
