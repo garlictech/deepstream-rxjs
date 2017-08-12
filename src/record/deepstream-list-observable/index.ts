@@ -1,11 +1,11 @@
-import { 
+import {
   Observable,
   Subscriber,
   Subscription
 } from 'rxjs';
 
 export class DeepstreamListObservable<T> extends Observable<T> {
-  constructor(subscribe?: <R>(subscriber: Subscriber<R>) => Subscription | Function | void, protected client?: deepstreamIO.deepstreamQuarantine, public list?: deepstreamIO.List) {
+  constructor(subscribe?: <R>(subscriber: Subscriber<R>) => Subscription | Function | void, protected client?, public list?) {
     super(subscribe);
   }
 
