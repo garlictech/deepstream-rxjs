@@ -1,11 +1,11 @@
-import { 
+import {
   Observable,
   Subscription,
   Subscriber
 } from 'rxjs';
 
 export class DeepstreamRecordObservable<T> extends Observable<T> {
-  constructor(subscribe?: <R>(subscriber: Subscriber<R>) => Subscription | Function | void, public record?: deepstreamIO.Record) {
+  constructor(subscribe?: <R>(subscriber: Subscriber<R>) => Subscription | Function | void, public record?) {
     super(subscribe);
   }
 
@@ -14,7 +14,7 @@ export class DeepstreamRecordObservable<T> extends Observable<T> {
       if (!this.record) {
         return reject(new Error('Observable without record'));
       }
-          
+
       this.record.whenReady(() => {
         this.record.set(value, err => {
           if (err) {
