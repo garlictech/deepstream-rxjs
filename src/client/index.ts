@@ -27,6 +27,7 @@ export class Client {
   public login(authData: IProviderConnectionData | IConnectionData): Observable < any > {
     this.client = Client.GetDependencies().deepstream(this._connectionString)
     console.log("Deepstream client is logging in... with data: ", JSON.stringify(authData, null, 2))
+    this.client.login(authData)
 
     let errObs = Observable.fromEvent(this.client, "error")
     .do(state => {
