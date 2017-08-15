@@ -2,11 +2,13 @@ import { Client } from '..'
 import { EventEmitter } from "events"
 let deepstream = require('deepstream.io-client-js')
 
-describe("The deepstream client is up and running", () => {
+describe("When the deepstream client is up and running, the client", () => {
   class MockDeepstream extends EventEmitter {
     private _state = deepstream.CONSTANTS.CONNECTION_STATE.OPEN
     constructor() {super()}
-    login = jasmine.createSpy("login").and.callFake(() => this._state = deepstream.CONSTANTS.CONNECTION_STATE.OPEN)
+    login = jasmine.createSpy("login").and.callFake(() => {
+      this._state = deepstream.CONSTANTS.CONNECTION_STATE.OPEN
+    })
     close = jasmine.createSpy("close").and.callFake(() => {
       this.emit("connectionStateChanged", "CLOSED")
       this._state = deepstream.CONSTANTS.CONNECTION_STATE.CLOSED
@@ -14,7 +16,7 @@ describe("The deepstream client is up and running", () => {
     getConnectionState() { return this._state }
   }
 
-  let mockDeepstream
+  let mockDeepstream: any
   let DeepstreamStub
   let loginData = {providerName: "UNIT TEST PROVIDER", jwtToken: "foobar"}
   let connectionString = "foobar"
@@ -30,8 +32,8 @@ describe("The deepstream client is up and running", () => {
       return {deepstream: DeepstreamStub}
     })
   })
-
-  it("should connect when the server is up", (done) => {
+  
+  it("should connect", (done) => {
     let client = new Client(connectionString)
     expect(client.isConnected()).toBeFalsy()
 
@@ -55,7 +57,7 @@ describe("The deepstream client is up and running", () => {
     mockDeepstream.emit("connectionStateChanged", "OPEN")
   })
 
-  it("should logout", (done) => {
+  it("should be able to logout", (done) => {
     let client = new Client(connectionString)
     client.login(loginData)
     .do(() => expect(client.isConnected()).toBeTruthy())
@@ -69,9 +71,30 @@ describe("The deepstream client is up and running", () => {
     mockDeepstream.emit("connectionStateChanged", "OPEN")
   })
 
-  it ("should handle logout even before the first login", (done) => {
+  it("should handle logout request even if the client is logged out", (done) => {
     let client = new Client(connectionString)
     client.logout()
-    .subscribe(() => done())
+    .subscribe(() =>{
+      expect(mockDeepstream.close).not.toHaveBeenCalled()
+      done()
+    })
+  })
+
+  it("should handle re-login: if the client is logged in, close the connection", (done) => {
+    let client = new Client(connectionString)
+    client.login(loginData)
+    .do(() => {
+      expect(mockDeepstream.close).not.toHaveBeenCalled()
+    })
+    .switchMap(() => {
+      let res$ = client.login(loginData)
+      return res$
+    })
+    .subscribe(() =>{
+      expect(mockDeepstream.close).toHaveBeenCalled()
+      done()
+    })
+    mockDeepstream.emit("connectionStateChanged", "OPEN")
+    mockDeepstream.emit("connectionStateChanged", "OPEN")
   })
 })
