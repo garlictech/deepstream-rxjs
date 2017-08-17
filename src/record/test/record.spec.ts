@@ -25,8 +25,15 @@ describe('Record', () => {
           });
         },
         unsubscribe: () => {},
-        set: (value, callback) => {
-          testDb.set(path, value);
+        set: (fieldOrValue, value, callback?) => {
+          if (typeof callback === 'undefined') {
+            callback = value;
+            value = fieldOrValue;
+            testDb.set(path, value);
+          } else {
+            testDb.setValue(path, fieldOrValue, value);
+          }
+
           callback();
         },
         whenReady: (callback) => {
@@ -106,11 +113,36 @@ describe('Record', () => {
     testDb.setValue('test/1', 'name', 'test-changed');
   });  
 
-/*  it('should set the record\'s value', (done) => {
-
+  it('should set a field\'s value', (done) => {
+    record
+      .record('test/1')
+      .set('name', 'test-changed2')
+      .then(() => {
+        let testRecord = testDb.get('test/1');
+        expect(testRecord.name).toEqual('test-changed2');
+        done();
+      })
+      .catch((err) => done.fail(err));
   });
 
-  it('should subscribe to a list', (done) => {
+  it('should set a records value', (done) => {
+    record
+      .record('test/1')
+      .set({
+        id: 'test1',
+        extra: 'test',
+        name: 'test-changed3'
+      })
+      .then(() => {
+        let testRecord = testDb.get('test/1');
+        expect(testRecord.name).toEqual('test-changed3');
+        expect(testRecord.extra).toEqual('test');
+        done();
+      })
+      .catch((err) => done.fail(err));
+  });  
+
+  /*it('should subscribe to a list', (done) => {
 
   });
 

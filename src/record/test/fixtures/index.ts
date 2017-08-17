@@ -3,6 +3,7 @@ import { EventEmitter } from 'events';
 export interface ITestRecord {
   id: string;
   name: string;
+  extra?: string;
 };
 
 export interface ITestRecords {
@@ -10,7 +11,7 @@ export interface ITestRecords {
 }
 
 export class TestDB extends EventEmitter {
-  private records: ITestRecords = {
+  public records: ITestRecords = {
     'test/1': {
       id: 'test1',
       name: 'test1'
@@ -22,7 +23,7 @@ export class TestDB extends EventEmitter {
     }
   };
 
-  private list: string[] = [
+  public list: string[] = [
     '1',
     '2'
   ];
