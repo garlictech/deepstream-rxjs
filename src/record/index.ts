@@ -17,7 +17,7 @@ export class Record {
       listName = parsed.table;
     }
 
-    let observable = DeepstreamListObservable.create((obs: Observer<DeepstreamRecordObservable<any>[]>) => {
+    let observable = new DeepstreamListObservable<any>((obs: (Observer<any>)) => {
       list.subscribe((paths) => {
         let records = paths.map((path) => {
           let recordPath = isQuery ? `${listName}/${path}` : path;
@@ -44,7 +44,7 @@ export class Record {
   public record(path: string): DeepstreamRecordObservable<any> {
     let record = this.client.record.getRecord(path);
 
-    let observable = DeepstreamRecordObservable.create((obs: Observer<any>) => {
+    let observable = new DeepstreamRecordObservable<any>((obs: Observer<any>) => {
       record.subscribe((data) => {
         obs.next(data);
       }, true);
