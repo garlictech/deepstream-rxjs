@@ -1,3 +1,54 @@
+# --------------------
+# OSX Files
+# --------------------
+.DS_Store
+.AppleDouble
+.LSOverride
+Icon
+._*
+.Spotlight-V100
+.Trashes
+
+# --------------------
+# Node Files
+# --------------------
+.nodemonignore
+npm-debug.log
 node_modules
-dist
-.vscode
+reports/
+
+# --------------------
+# SASS Files
+# --------------------
+.sass-cache/
+
+# --------------------
+# Bower Files
+# --------------------
+.bower-*/
+bower_components
+
+# --------------------
+# App Files
+# --------------------
+modules/public/
+modules/views/
+/public/build/
+.tmp/
+logs/
+builds/
+project/dist/
+dist/
+bin/
+*.bak
+.npmrc
+secrets.tgz
+
+# --------------------
+# Text editor files
+# --------------------
+*.sublime-project
+*.sublime-workspace
+.vscode/
+
+
