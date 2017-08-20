@@ -1,4 +1,6 @@
 import { Client } from '..'
+import { Record } from '../../record';
+
 import { EventEmitter } from "events"
 let deepstream = require('deepstream.io-client-js')
 
@@ -103,6 +105,15 @@ describe("When the deepstream client is up and running, the client", () => {
     mockDeepstream.emit("connectionStateChanged", "OPEN")
     mockDeepstream.emit("connectionStateChanged", "OPEN")
   })
+
+  it('should get the record instance', (done) => {
+    let client = new Client(connectionString)
+    
+    expect(client.record).not.toBeUndefined();
+    expect(client.record instanceof Record).toBeTruthy();
+
+    done();
+  });
 })
 
 describe("Without mocking the deepstream dependencies", () => {

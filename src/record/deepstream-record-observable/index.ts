@@ -9,20 +9,28 @@ export class DeepstreamRecordObservable<T> extends Observable<T> {
     super(subscribe);
   }
 
-  set(value: any): Promise<void> {
+  set(value: any): Promise<void>;
+  set(field: string, value: any): Promise<any>;
+  set(fieldOrValue: any, value?: any): Promise<void> {
     return new Promise<void>((resolve, reject) => {
       if (!this.record) {
         return reject(new Error('Observable without record'));
       }
 
       this.record.whenReady(() => {
-        this.record.set(value, err => {
+        let callback = (err) => {
           if (err) {
             return reject(err);
           }
 
           resolve();
-        });
+        };
+
+        if (typeof value === 'undefined') {
+          this.record.set(fieldOrValue, callback);
+        } else {
+          this.record.set(fieldOrValue, value, callback); 
+        }
       });
     });
   }
