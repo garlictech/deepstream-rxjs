@@ -82,7 +82,7 @@ describe("When the deepstream client is up and running, the client", () => {
   it("should handle logout request even if the client is logged out", (done) => {
     let client = new Client(connectionString)
     client.logout()
-    .subscribe(() =>{
+    .subscribe(() => {
       expect(mockDeepstream.close).not.toHaveBeenCalled()
       done()
     })
@@ -98,22 +98,13 @@ describe("When the deepstream client is up and running, the client", () => {
       let res$ = client.login(loginData)
       return res$
     })
-    .subscribe(() =>{
+    .subscribe(() => {
       expect(mockDeepstream.close).toHaveBeenCalled()
       done()
     })
     mockDeepstream.emit("connectionStateChanged", "OPEN")
     mockDeepstream.emit("connectionStateChanged", "OPEN")
   })
-
-  it('should get the record instance', (done) => {
-    let client = new Client(connectionString)
-    
-    expect(client.record).not.toBeUndefined();
-    expect(client.record instanceof Record).toBeTruthy();
-
-    done();
-  });
 })
 
 describe("Without mocking the deepstream dependencies", () => {
