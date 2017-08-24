@@ -1,57 +1,31 @@
 import { Observable, Observer } from 'rxjs';
-
-import { DeepstreamListObservable } from './deepstream-list-observable';
-import { DeepstreamRecordObservable } from './deepstream-record-observable';
+import { Client } from '../client';
+import { Logger } from '../logger';
 
 export class Record {
-  public constructor(private client) {}
+  constructor(private _client: Client, private _name: string) { }
 
-  public list(path: string): DeepstreamListObservable<DeepstreamRecordObservable<any>[]> {
-    let list = this.client.record.getList(path);
-    let isQuery = path.indexOf('search?') !== -1;
-    let listName;
-
-    if (isQuery) {
-      let queryString = path.split('search?')[1];
-      let parsed = JSON.parse(queryString);
-      listName = parsed.table;
-    }
-
-    let observable = new DeepstreamListObservable<any>((obs: (Observer<any>)) => {
-      list.subscribe((paths) => {
-        let records = paths.map((p) => {
-          let recordPath = isQuery ? `${listName}/${p}` : p;
-          return this.record(recordPath);
-        });
-
-        obs.next(records);
-      }, true);
-
-      return () => {
-        if (isQuery) {
-          // Queries need to be deleted
-          list.delete();
-        } else {
-          // Normal deepstream lists just need to be unsubscribed from
-          list.unsubscribe();
+  public setData(data: any, path?: string): Observable<any> {
+    return new Observable<any>((obs: Observer<any>) => {
+      this._client.client.record.setData(this._name, path, data, err => {
+        if (err) {
+          obs.error(err);
         }
-      }
-    }, this.client, list);
-
-    return observable;
+        obs.next({});
+        obs.complete();
+      });
+    });
   }
 
-  public record(path: string): DeepstreamRecordObservable<any> {
-    let record = this.client.record.getRecord(path);
-
-    let observable = new DeepstreamRecordObservable<any>((obs: Observer<any>) => {
-      record.subscribe((data) => {
-        obs.next(data);
-      }, true);
-
-      return () => record.unsubscribe();
-    }, record);
-
-    return observable;
+  public snapshot() {
+    return new Observable<any>((obs: Observer<any>) => {
+      this._client.client.record.snapshot(this._name, (err, result) => {
+        if (err) {
+          obs.error(err);
+        }
+        obs.next(result);
+        obs.complete();
+      });
+    });
   }
-};
+}
