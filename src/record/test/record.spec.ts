@@ -1,154 +1,83 @@
 import { Record } from '..'
-import { EventEmitter } from 'events';
+import { Client } from '../../client'
 
-import { TestDB } from './fixtures';
+describe('Test record', () => {
+  let setDataSpy: any
+  let snapshotSpy: any
+  let recordName = 'recordName'
 
-let deepstream = require('deepstream.io-client-js')
-
-describe('Record', () => {
-  let testDb: TestDB;
-
-  class MockRecord {
-    getRecord = jasmine.createSpy('getRecord').and.callFake((path: string) => {
-      let record = testDb.get(path);
-
-      return {
-        subscribe: (callback, fire) => {
-          if (fire === true) {
-            callback(record);
-          }
-
-          testDb.on('record.changed', (changedPath, value) => {
-            if (changedPath === path) {
-              callback(value);
-            }
-          });
-        },
-        unsubscribe: () => {},
-        set: (fieldOrValue, value, callback?) => {
-          if (typeof callback === 'undefined') {
-            callback = value;
-            value = fieldOrValue;
-            testDb.set(path, value);
-          } else {
-            testDb.setValue(path, fieldOrValue, value);
-          }
-
-          callback();
-        },
-        whenReady: (callback) => {
-          callback();
-        }
-      };
-    });
-
-    getList = jasmine.createSpy('getList').and.callFake((path: string) => {
-      return {
-        subscribe: (callback, fire) => {
-          if (fire === true) {
-            callback(testDb.getList());
-          }
-
-          testDb.on('list.changed', () => callback(testDb.getList()));
-        },
-        unsubscribe: () => {},
-        addEntry: (value, callback) => {
-          testDb.addEntry(value);
-          callback();
-        },
-        whenReady: (callback) => {
-          callback();
-        }        
-      };
-    });
+  let data = {
+    foo: 'bar'
   }
-
-  class MockDeepstream extends EventEmitter {
-    private _state = deepstream.CONSTANTS.CONNECTION_STATE.OPEN
-    public record = new MockRecord();
-
-    constructor() {
-      super()
+  class MockClient extends Client {
+    public client = {
+      record: {
+        setData: setDataSpy,
+        snapshot: snapshotSpy
+      }
     }
   }
 
-  let mockDeepstream: any;
-  let record: Record;
-
-  beforeEach(() => {
-    mockDeepstream = new MockDeepstream();
-    record = new Record(mockDeepstream);
-    testDb = new TestDB();
-  });
-
-  afterEach(() => {
-    testDb.removeAllListeners();
-  });
-  
-  it('should subscribe to a record', (done) => {
-    record
-      .record('test/1')
-      .take(1)
-      .subscribe((value) => {
-        expect(value.name).toEqual('test1');
-        done();
-      }, (err) => {
-        done.fail(err);
-      });
-  });
-
-  it('should notified when the record changed', (done) => {
-    record
-      .record('test/1')
-      // Skip the initial value
-      .skip(1)
-      .take(1)
-      .subscribe((value) => {
-        expect(value.name).toEqual('test-changed');
-        done();
-      }, (err) => {
-        done.fail(err);
-      });
-
-    testDb.setValue('test/1', 'name', 'test-changed');
-  });  
-
-  it('should set a field\'s value', (done) => {
-    record
-      .record('test/1')
-      .set('name', 'test-changed2')
-      .then(() => {
-        let testRecord = testDb.get('test/1');
-        expect(testRecord.name).toEqual('test-changed2');
-        done();
+  describe('When we try to set any data', () => {
+    it('should do it', async () => {
+      setDataSpy = jasmine.createSpy('setData').and.callFake((name, path, data, cb) => {
+        cb()
       })
-      .catch((err) => done.fail(err));
-  });
 
-  it('should set a records value', (done) => {
-    record
-      .record('test/1')
-      .set({
-        id: 'test1',
-        extra: 'test',
-        name: 'test-changed3'
+      let client = new MockClient('atyala')
+      let record = new Record(client, recordName)
+      let result = await record.setData(data, 'path').toPromise()
+      let args = setDataSpy.calls.mostRecent().args
+      expect(args[0]).toEqual(recordName)
+      expect(args[1]).toEqual('path')
+      expect(args[2]).toEqual(data)
+    })
+  })
+
+  describe('When the callback returns error', () => {
+    it('should throw error', async (done) => {
+      setDataSpy = jasmine.createSpy('setData').and.callFake((name, path, data, cb) => {
+        cb('error')
       })
-      .then(() => {
-        let testRecord = testDb.get('test/1');
-        expect(testRecord.name).toEqual('test-changed3');
-        expect(testRecord.extra).toEqual('test');
-        done();
+
+      let client = new MockClient('atyala')
+      let record = new Record(client, recordName)
+      let result = await record.setData(data, 'path').toPromise()
+      .catch(err => {
+        expect(err).toEqual('error')
+        done()
       })
-      .catch((err) => done.fail(err));
-  });  
+    })
+  })
 
-  /*it('should subscribe to a list', (done) => {
+  describe('When we try to get the snapshot of any data', () => {
+    it('should do return', async () => {
+      snapshotSpy = jasmine.createSpy('snapshot').and.callFake((name, cb) => {
+        cb(null, data)
+      })
 
-  });
+      let client = new MockClient('atyala')
+      let record = new Record(client, recordName)
+      let result = await record.snapshot().toPromise()
+      let args = snapshotSpy.calls.mostRecent().args
+      expect(args[0]).toEqual(recordName)
+      expect(result).toEqual(data)
+    })
+  })
 
-  it('should push a value to the list', (done) => {
+  describe('When the snapshot returns error', () => {
+    it('should throw error', async (done) => {
+      snapshotSpy = jasmine.createSpy('snapshot').and.callFake((name, cb) => {
+        cb('error', data)
+      })
 
-  });*/
-
-});
-
+      let client = new MockClient('atyala')
+      let record = new Record(client, recordName)
+      let result = await record.snapshot().toPromise()
+      .catch(err => {
+        expect(err).toEqual('error')
+        done()
+      })
+    })
+  })
+})
