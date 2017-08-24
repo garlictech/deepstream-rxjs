@@ -9,7 +9,7 @@ export class Record {
     return new Observable<any>((obs: Observer<any>) => {
       this._client.client.record.setData(this._name, path, data, err => {
         if (err) {
-          throw err;
+          obs.error(err);
         }
         obs.next({});
         obs.complete();
