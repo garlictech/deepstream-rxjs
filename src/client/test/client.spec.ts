@@ -1,4 +1,6 @@
 import { Client } from '..'
+import { Record } from '../../record';
+
 import { EventEmitter } from "events"
 let deepstream = require('deepstream.io-client-js')
 
@@ -10,7 +12,6 @@ describe("When the deepstream client is up and running, the client", () => {
       this._state = deepstream.CONSTANTS.CONNECTION_STATE.OPEN
     })
     close = jasmine.createSpy("close").and.callFake(() => {
-      this.emit("connectionStateChanged", "CLOSED")
       this._state = deepstream.CONSTANTS.CONNECTION_STATE.CLOSED
     })
     getConnectionState() { return this._state }
@@ -61,14 +62,21 @@ describe("When the deepstream client is up and running, the client", () => {
     let client = new Client(connectionString)
     client.login(loginData)
     .do(() => expect(client.isConnected()).toBeTruthy())
-    .map(() => client.logout())
-    .do(() => {
-      expect(mockDeepstream.close).toHaveBeenCalled()
-      expect(client.isConnected()).toBeFalsy()
+    .switchMap(() => {
+      let res$ = client.logout()
+      return res$
     })
-    .subscribe(() => done())
-
+    .subscribe(() => {
+      // This means that at the "FOOBAR" event no close is called
+      expect(mockDeepstream.close).toHaveBeenCalledTimes(1)
+      expect(client.isConnected()).toBeFalsy()
+      done()
+    })
+    
     mockDeepstream.emit("connectionStateChanged", "OPEN")
+    // This will test if the logout observer emits only at the 'close' event
+    mockDeepstream.emit("connectionStateChanged", "FOOBAR")
+    mockDeepstream.emit("connectionStateChanged", "CLOSED")
   })
 
   it("should handle logout request even if the client is logged out", (done) => {
@@ -97,4 +105,20 @@ describe("When the deepstream client is up and running, the client", () => {
     mockDeepstream.emit("connectionStateChanged", "OPEN")
     mockDeepstream.emit("connectionStateChanged", "OPEN")
   })
+
+  it('should get the record instance', (done) => {
+    let client = new Client(connectionString)
+    
+    expect(client.record).not.toBeUndefined();
+    expect(client.record instanceof Record).toBeTruthy();
+
+    done();
+  });
 })
+
+describe("Without mocking the deepstream dependencies", () => {
+  it('GetDependencies should return the deepstream factory', () => {
+    expect(Client.GetDependencies()).not.toBeNull
+  });
+})
+

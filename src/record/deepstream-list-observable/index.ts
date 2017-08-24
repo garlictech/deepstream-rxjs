@@ -11,6 +11,10 @@ export class DeepstreamListObservable<T> extends Observable<T> {
 
   push(value: any): Promise<void> {
     return new Promise<void>((resolve, reject) => {
+      if (!this.client) {
+        return reject(new Error('Observable without deepstream client'));
+      }
+      
       if (!this.list) {
         return reject(new Error('Observable without list'));
       }
@@ -33,10 +37,6 @@ export class DeepstreamListObservable<T> extends Observable<T> {
 
   protected createRecord(path: string, value: any): Promise<void> {
     return new Promise<void>((resolve, reject) => {
-      if (!this.client) {
-        return reject(new Error('Observable without deepstream client'));
-      }
-
       let record = this.client.record.getRecord(path);
 
       record.whenReady(() => {

@@ -47,13 +47,17 @@ export class Client {
 
   public logout() {
     if (this.client) {
-      let obs$ = Observable.fromEvent(this.client, "connectionStateChanged")
-      .do(state => console.log("Closing client connection state: ", state))
-      .filter(state => state === 'CLOSED')
-      .take(1)
+      let obs$ = Observable.create(observer => {
+        this.client.on("connectionStateChanged", state => {
+          if (state === 'CLOSED') {
+            observer.next()
+            observer.complete()
+          }
+        })
+        this.client.close()
+      }) 
       .do(() => console.log(`Deepstream client is logged out`))
 
-      this.client.close()
       return obs$
     } else {
       return Observable.of({})
