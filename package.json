@@ -1,23 +1,32 @@
 {
-    "name": "deepstream-rxjs",
-    "version": "0.0.1",
-    "description": "Rxjs wrapper for deepstream",
-    "main": "index.ts",
-    "scripts": {
-        "test": "echo \"Error: no test specified\" && exit 1",
-        "build": "tsc"
-    },
-    "author": {
-        "name": "Garlictech",
-        "email": "contact@garlictech.com",
-        "url": "http://www.garlictech.com"
-    },
-    "license": "SEE LICENSE IN license.txt",
-    "dependencies": {
-        "deepstream.io-client-js": "^2.2.1",
-        "rxjs": "^5.4.2",
-        "tslint": "^5.5.0",
-        "typescript": "^2.4.2",
-        "winston": "^2.3.1"
-    }
+  "name": "deepstream-rxjs",
+  "version": "0.0.1",
+  "description": "Rxjs wrapper for deepstream",
+  "main": "index.ts",
+  "scripts": {
+    "test": "gulp systemtest",
+    "build": "gulp build"
+  },
+  "author": {
+    "name": "Garlictech",
+    "email": "contact@garlictech.com",
+    "url": "http://www.garlictech.com"
+  },
+  "license": "SEE LICENSE IN license.txt",
+  "dependencies": {
+    "@types/jasmine": "^2.5.54",
+    "@types/node": "^8.0.25",
+    "deepstream.io-client-js": "^2.2.1",
+    "rxjs": "^5.4.2",
+    "tslint": "^5.5.0",
+    "typescript": "^2.4.2",
+    "winston": "^2.3.1"
+  },
+  "devDependencies": {
+    "gulp": "^3.9.1",
+    "gulp-istanbul": "^1.1.2",
+    "gulp-jasmine": "^2.4.2",
+    "gulp-typescript": "^3.2.2",
+    "jasmine-spec-reporter": "^4.2.1"
+  }
 }
