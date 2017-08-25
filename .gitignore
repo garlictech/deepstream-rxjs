@@ -51,4 +51,4 @@ secrets.tgz
 *.sublime-workspace
 .vscode/
 
-
+coverage
