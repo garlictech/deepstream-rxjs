@@ -1,27 +1,32 @@
 {
     "compilerOptions": {
-        "module": "commonjs",
-        "outDir": "dist",
         "target": "es5",
         "declaration": true,
-        "module": "es2015",
+        "module": "commonjs",
         "moduleResolution": "node",
+        "emitDecoratorMetadata": true,
+        "experimentalDecorators": true,
+        "allowSyntheticDefaultImports": true,
+        "importHelpers": true,
+        "strictNullChecks": false,
+        "removeComments": true,
+        "sourceMap": true,
         "lib": [
-          "es6",
-          "dom"
+            "es6",
+            "dom"
         ],
         "typeRoots": [
-          "node_modules/@types",
-          "node_modules/deepstream.io-client-js/src/client.d.ts"
+            "./node_modules/@types",
+            "node_modules/deepstream.io-client-js/src/client.d.ts"
         ],
         "types": [
-          "deepstream.io-client-js"
+            "node",
+            "jasmine",
+            "deepstream.io-client-js"
         ],
-        "noImplicitAny": false,
-        "sourceMap": false
-    },
-    "exclude": [
-      "node_modules",
-      "dist"
-    ]
+        "exclude": [
+            "node_modules",
+            "dist"
+        ]
+    }
 }
