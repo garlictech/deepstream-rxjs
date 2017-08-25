@@ -1,11 +1,11 @@
-import { Observable, Observer } from 'rxjs';
-import { Client } from '../client';
-import { Logger } from '../logger';
+import {Observable, Observer} from 'rxjs';
+import {Client} from '../client';
+import {Logger} from '../logger';
 
 export class Record {
   constructor(private _client: Client, private _name: string) {}
 
-  get(): Observable<any> {
+  public get(): Observable<any> {
     let record = this._client.client.record.getRecord(this._name);
 
     let observable = new Observable<any>((obs: Observer<any>) => {
@@ -19,9 +19,9 @@ export class Record {
     return observable;
   }
 
-  set(value: any): Observable<void>;
-  set(field: string, value: any): Observable<void>;
-  set(fieldOrValue: any, value?: any): Observable<void> {
+  public set(value: any): Observable<void>;
+  public set(field: string, value: any): Observable<void>;
+  public set(fieldOrValue: any, value?: any): Observable<void> {
     return new Observable<void>((obs: Observer<void>) => {
       let callback = err => {
         if (err) {

@@ -75,9 +75,9 @@ describe('Test Record', () => {
       let record$ = record.get();
       expect(record$ instanceof Observable).toBeTruthy();
 
-      record$.skip(1).subscribe(record => {
-        expect(record instanceof Object).toBeTruthy();
-        expect(record.foo).toEqual('bar2');
+      record$.skip(1).subscribe(_record => {
+        expect(_record instanceof Object).toBeTruthy();
+        expect(_record.foo).toEqual('bar2');
         done();
       }, done.fail);
     });
