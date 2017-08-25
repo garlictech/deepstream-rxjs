@@ -1,329 +1,174 @@
+import { Observable } from 'rxjs';
+
 import { Record } from '..'
-import { EventEmitter } from 'events';
+import { Client } from '../../client'
 
-import { TestDB } from './fixtures';
+describe('Test Record', () => {
+  let setDataSpy: any;
+  let snapshotSpy: any;
+  let getRecordSpy: any;
+  let recordName = 'recordName';
 
-let deepstream = require('deepstream.io-client-js')
+  let data = {
+    foo: 'bar'
+  };
 
-describe('Record', () => {
-  let testDb: TestDB;
-  let recordUnsubscribeSpy;
-  let listUnsubscribeSpy;
-  let listDeleteSpy;
+  let data2 = {
+    foo: 'bar2'
+  };
 
-  class MockRecord {
-    getRecord = jasmine.createSpy('getRecord').and.callFake((path: string) => {
-      let record = testDb.get(path);
-      let id = path.replace(/test\//, '');
-
-      return {
-        subscribe: (callback, fire) => {
-          if (fire === true) {
-            callback(record);
-          }
-
-          testDb.on(`record.changed.${id}`, (changedPath, value) => {
-            callback(value);
-          });
-        },
-        unsubscribe: recordUnsubscribeSpy.and.callFake(() => {
-          testDb.removeAllListeners(`record.changed.${id}`);
-        }),
-        set: (fieldOrValue, value, callback?) => {
-          if (path === 'test/999') {
-            
-            if (typeof callback === 'undefined') {
-              callback = value;
-            }
-
-            callback(new Error('Set failed'));
-          } else {
-            if (typeof callback === 'undefined') {
-              callback = value;
-              value = fieldOrValue;
-              testDb.set(path, value);
-            } else {
-              testDb.setValue(path, fieldOrValue, value);
-            }
-  
-            callback();
-          }
-        },
-        whenReady: (callback) => {
-          callback();
-        }
-      };
-    });
-
-    getList = jasmine.createSpy('getList').and.callFake((path: string) => {
-      return {
-        name: path,
-        subscribe: (callback, fire) => {
-          if (fire === true) {
-            callback(testDb.getList(path));
-          }
-
-          testDb.on('list.changed', () => callback(testDb.getList(path)));
-        },
-        unsubscribe: listUnsubscribeSpy.and.callFake(() => {
-          testDb.removeAllListeners(`list.changed`);
-        }),
-        delete: listDeleteSpy.and.callFake(() => {
-          testDb.removeAllListeners(`list.changed`);
-        }),
-        addEntry: (value) => {
-          testDb.addEntry(value);
-        },
-        whenReady: (callback) => {
-          callback();
-        }
-      };
-    });
-  }
-
-  class MockDeepstream extends EventEmitter {
-    private _state = deepstream.CONSTANTS.CONNECTION_STATE.OPEN
-    public record = new MockRecord();
-    public lastUid = 1000;
-
-    public getUid(): string {
-      let uid = this.lastUid++;
-
-      return uid.toString();
-    }
-
-    constructor() {
-      super()
+  class MockClient extends Client {
+    public client = {
+      record: {
+        setData: setDataSpy,
+        snapshot: snapshotSpy,
+        getRecord: getRecordSpy
+      }
     }
   }
 
-  let mockDeepstream: any;
-  let record: Record;
-
-  beforeEach(() => {
-    recordUnsubscribeSpy = jasmine.createSpy('unsubscribe');
-    listUnsubscribeSpy = jasmine.createSpy('unsubscribe');
-    listDeleteSpy = jasmine.createSpy('delete');
-    mockDeepstream = new MockDeepstream();
-    record = new Record(mockDeepstream);
-    testDb = new TestDB();
-  });
-
-  afterEach(() => {
-    testDb.removeAllListeners();
-  });
-  
-  it('should subscribe to a record', (done) => {
-    record
-      .record('test/1')
-      .subscribe((value) => {
-        expect(value.name).toEqual('test1');
-        done();
-      }, done.fail);
-  });
-
-  it('should notified when the record changed', (done) => {
-    record
-      .record('test/1')
-      // Skip the initial value
-      .skip(1)
-      .subscribe((value) => {
-        expect(value.name).toEqual('test-changed');
-        done();
-      }, done.fail);
-
-    testDb.setValue('test/1', 'name', 'test-changed');
-  });
-
-  it('should unsubscribe from the record', (done) => {
-    let subscription = record
-      .record('test/1')
-      // Skip initial value
-      .skip(1)
-      .subscribe(() => {
-        done.fail(new Error('Subscribe called'));
-      }, done.fail);
-
-      subscription.unsubscribe();
-
-      testDb.setValue('test/1', 'name', 'xxx');
-
-      expect(recordUnsubscribeSpy).toHaveBeenCalled();
-      done();
-  });
-
-  it('should set a field\'s value', (done) => {
-    record
-      .record('test/1')
-      .set('name', 'test-changed2')
-      .then(() => {
-        let testRecord = testDb.get('test/1');
-        expect(testRecord.name).toEqual('test-changed2');
-        done();
-      })
-      .catch((err) => done.fail(err));
-  });
-
-  it('should throw error when set failed', (done) => {
-    record
-    .record('test/999')
-    .set('name', 'test-changed2')
-    .then(() => done.fail(new Error('Not failed!')))
-    .catch((err: Error) => {
-      let testRecord = testDb.get('test/999');
-      expect(err.message).toEqual('Set failed');
-      expect(testRecord).toBeUndefined();
-      done();
-    });
-  });
-
-  it('should set a records value', (done) => {
-    record
-      .record('test/1')
-      .set({
-        id: 'test1',
-        extra: 'test',
-        name: 'test-changed3'
-      })
-      .then(() => {
-        let testRecord = testDb.get('test/1');
-        expect(testRecord.name).toEqual('test-changed3');
-        expect(testRecord.extra).toEqual('test');
-        done();
-      })
-      .catch((err) => done.fail(err));
-  });  
-
-  it('should subscribe to a list', (done) => {
-    record
-      .list('test')
-      .subscribe(list => {
-        let keys  = Object.keys(testDb.records);
-        let count = keys.length;
-
-        expect(list instanceof Array).toBeTruthy();
-        expect(list.length).toEqual(count);
-
-        keys.forEach(key => {
-          let data = testDb.get(key);
-          expect(typeof data.id === 'string').toBeTruthy();
-          expect(typeof data.name === 'string').toBeTruthy();
-          expect(data.id.match(/^[0-9]$/)).not.toBeNull();
-        });
-
-        done();
-      }, done.fail);
-
-  });
-
-  it('should query a list', (done) => {
-    let queryString = JSON.stringify({
-      table: 'test',
-      query: [
-        ['name', 'match', 'test.*']
-      ]
-    });
-
-    record
-      .list(`search?${queryString}`)
-      .subscribe(list => {
-        let keys  = Object.keys(testDb.records);
-        let count = keys.length;
-
-        expect(list instanceof Array).toBeTruthy();
-        expect(list.length).toEqual(count - 1);
-
-        keys.forEach(key => {
-          let data = testDb.get(key);
-          expect(typeof data.id === 'string').toBeTruthy();
-          expect(typeof data.name === 'string').toBeTruthy();
-          expect(data.id.match(/^[0-9]$/)).not.toBeNull();
-        });
-
-        done();
-      }, done.fail);
-
-  });
-
-  it('should unsubscribe from the list', (done) => {
-    let subscription = record
-      .list('test')
-      // Skip initial value
-      .skip(1)
-      .subscribe(() => {
-        done.fail(new Error('Subscribe called'));
-      }, done.fail);
-
-      subscription.unsubscribe();
-
-      testDb.addEntry('5000');
-
-      expect(listUnsubscribeSpy).toHaveBeenCalled();
-      done();
-  });
-  
-  it('should delete the query', (done) => {
-    let queryString = JSON.stringify({
-      table: 'test',
-      query: [
-        ['name', 'match', 'test.*']
-      ]
-    });
-    
-    let subscription = record
-      .list(`search?${queryString}`)
-      // Skip initial value
-      .skip(1)
-      .subscribe(() => {
-        done.fail(new Error('Subscribe called'));
-      }, done.fail);
-
-      subscription.unsubscribe();
-
-      testDb.addEntry('5000');
-
-      expect(listUnsubscribeSpy).not.toHaveBeenCalled();
-      expect(listDeleteSpy).toHaveBeenCalled();
-      done();
-  });    
-
-  it('should push a value to the list', (done) => {
-    record
-      .list('test')
-      .push({
-        name: 'pushtest'
-      })
-      .then(() => {
-        let list = testDb.getList('test');
-        let id = mockDeepstream.lastUid - 1;
-        let data = testDb.get(`test/${id}`);
-
-        expect(data.name).toEqual('pushtest');
-        expect(list.indexOf(`test/${id}`)).toBeGreaterThan(-1);
-
-        done();
-      })
-      .catch(done.fail);
-
-  });
-
-  it('should throw error when push failed', (done) => {
-    mockDeepstream.lastUid = 999;
-    record
-      .list('test')
-      .push({
-        name: 'test-push-fail'
-      })
-      .then(() => done.fail(new Error('Not failed!')))
-      .catch((err: Error) => {
-        let testRecord = testDb.get('test/999');
-        let list = testDb.getList('test');
-        expect(err.message).toEqual('Set failed');
-        expect(testRecord).toBeUndefined();
-        expect(list.indexOf('test/999')).toEqual(-1);
-        done();
+  describe('When we try to get the data', () => {
+    it('should return an observable', async () => {
+      getRecordSpy = jasmine.createSpy('getRecord').and.callFake((name) => {
+        return {
+          whenReady: (callback => callback()),
+          subscribe: (callback) => {
+            callback(data);
+          },
+          unsubscribe: () => {}
+        };
       });
-  });  
 
-});
+      let client = new MockClient('atyala');
+      let record = new Record(client, recordName);
 
+      let record$ = record.get();
+      expect(record$ instanceof Observable).toBeTruthy();
+
+      let result = await record$.take(1).toPromise();
+
+      let args = getRecordSpy.calls.mostRecent().args;
+
+      expect(args[0]).toEqual(recordName);
+      expect(result instanceof Object).toBeTruthy();
+      expect(result.foo).toEqual(data.foo);
+    });
+
+    it('should call observer\'s next when data changed', (done) => {
+      getRecordSpy = jasmine.createSpy('getRecord').and.callFake((name) => {
+        return {
+          whenReady: (callback => callback()),
+          subscribe: (callback) => {
+            callback(data);
+
+            setTimeout(() => {
+              callback(data2)
+            }, 100);
+          },
+          unsubscribe: () => {}
+        };
+      });
+
+      let client = new MockClient('atyala');
+      let record = new Record(client, recordName);
+
+      let record$ = record.get();
+      expect(record$ instanceof Observable).toBeTruthy();
+
+
+      record$
+        .skip(1)
+        .subscribe(record => {
+          expect(record instanceof Object).toBeTruthy();
+          expect(record.foo).toEqual('bar2');
+          done();
+        }, done.fail)
+    });
+  })
+
+  describe('When we try to set any data', () => {
+    it('should do it', async () => {
+      setDataSpy = jasmine.createSpy('setData').and.callFake((name, pathOrData, ...rest) => {
+        let cb = rest[rest.length - 1];
+        cb();
+      });
+
+      let client = new MockClient('atyala');
+      let record = new Record(client, recordName);
+      let result = await record.set(data).toPromise();
+      let args = setDataSpy.calls.mostRecent().args;
+      expect(args[0]).toEqual(recordName);
+      expect(args[1]).toEqual(data);
+    });
+
+    it('should set only a property value', async() => {
+      setDataSpy = jasmine.createSpy('setData').and.callFake((name, pathOrData, ...rest) => {
+        let cb = rest[rest.length - 1];
+        cb();
+      });
+
+      let client = new MockClient('atyala');
+      let record = new Record(client, recordName);
+      let result = await record.set('name', 'test').toPromise();
+      let args = setDataSpy.calls.mostRecent().args;
+      
+      expect(args[0]).toEqual(recordName);
+      expect(args[1]).toEqual('name');
+      expect(args[2]).toEqual('test');
+    });
+  })
+
+  describe('When the callback returns error', () => {
+    it('should throw error', async (done) => {
+      setDataSpy = jasmine.createSpy('setData').and.callFake((name, path, ...rest) => {
+        let cb = rest[rest.length - 1];
+        cb('error');
+      })
+
+      let client = new MockClient('atyala')
+      let record = new Record(client, recordName)
+      
+      await record
+      .set(data)
+      .toPromise()
+      .catch(err => {
+        expect(err).toEqual('error')
+        done()
+      })
+    })
+  })
+
+  describe('When we try to get the snapshot of any data', () => {
+    it('should do return', async () => {
+      snapshotSpy = jasmine.createSpy('snapshot').and.callFake((name, cb) => {
+        cb(null, data)
+      })
+
+      let client = new MockClient('atyala')
+      let record = new Record(client, recordName)
+      let result = await record.snapshot().toPromise()
+      let args = snapshotSpy.calls.mostRecent().args
+      expect(args[0]).toEqual(recordName)
+      expect(result).toEqual(data)
+    })
+  })
+
+  describe('When the snapshot returns error', () => {
+    it('should throw error', async (done) => {
+      snapshotSpy = jasmine.createSpy('snapshot').and.callFake((name, cb) => {
+        cb('error', data)
+      })
+
+      let client = new MockClient('atyala')
+      let record = new Record(client, recordName)
+      
+      await record
+      .snapshot()
+      .toPromise()
+      .catch(err => {
+        expect(err).toEqual('error')
+        done()
+      })
+    })
+  })
+})

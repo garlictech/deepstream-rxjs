@@ -1,57 +1,56 @@
-import { Observable, Observer } from 'rxjs';
-
-import { DeepstreamListObservable } from './deepstream-list-observable';
-import { DeepstreamRecordObservable } from './deepstream-record-observable';
+import { Observable, Observer } from 'rxjs'
+import { Client } from '../client'
+import { Logger } from '../logger'
 
 export class Record {
-  public constructor(private client) {}
 
-  public list(path: string): DeepstreamListObservable<DeepstreamRecordObservable<any>[]> {
-    let list = this.client.record.getList(path);
-    let isQuery = path.indexOf('search?') !== -1;
-    let listName;
+  constructor(private _client: Client, private _name: string) {}
 
-    if (isQuery) {
-      let queryString = path.split('search?')[1];
-      let parsed = JSON.parse(queryString);
-      listName = parsed.table;
-    }
-
-    let observable = new DeepstreamListObservable<any>((obs: (Observer<any>)) => {
-      list.subscribe((paths) => {
-        let records = paths.map((path) => {
-          let recordPath = isQuery ? `${listName}/${path}` : path;
-          return this.record(recordPath);
-        });
-
-        obs.next(records);
-      }, true);
-
-      return () => {
-        if (isQuery) {
-          // Queries need to be deleted
-          list.delete();
-        } else {
-          // Normal deepstream lists just need to be unsubscribed from
-          list.unsubscribe();
-        }
-      }
-    }, this.client, list);
-
-    return observable;
-  }
-
-  public record(path: string): DeepstreamRecordObservable<any> {
-    let record = this.client.record.getRecord(path);
-
-    let observable = new DeepstreamRecordObservable<any>((obs: Observer<any>) => {
+  get(): Observable<any> {
+    let record = this._client.client.record.getRecord(this._name);
+    
+    let observable = new Observable<any>((obs: Observer<any>) => {
       record.subscribe((data) => {
         obs.next(data);
       }, true);
 
       return () => record.unsubscribe();
-    }, record);
+    });    
 
     return observable;
   }
-};
+
+  set(value: any): Observable<void>;
+  set(field: string, value: any): Observable<void>;
+  set(fieldOrValue: any, value?: any): Observable<void> {
+    return new Observable<void>((obs: Observer<void>) => {
+      let callback = (err) => {
+        if (err) {
+          throw err;
+        }
+
+        obs.next(null);
+        obs.complete();
+      };
+
+      if (typeof value === 'undefined') {
+        this._client.client.record.setData(this._name, fieldOrValue, callback);
+      } else {
+        this._client.client.record.setData(this._name, fieldOrValue, value, callback); 
+      }
+    });
+  }
+
+  public snapshot() {
+    return new Observable<any>((obs: Observer<any>) => {
+      this._client.client.record.snapshot(this._name, (err, result) => {
+        if (err) {
+          throw err;
+        }
+        
+        obs.next(result);
+        obs.complete();
+      });
+    });
+  }
+}

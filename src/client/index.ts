@@ -1,12 +1,11 @@
 import { Observable, Observer } from 'rxjs'
 let deepstream = require('deepstream.io-client-js')
 
-import { Record } from '../record'
+import { Logger } from '../logger'
 import { IProviderConnectionData, IConnectionData } from '../interfaces'
 
 export class Client {
   public client
-  private _record: Record
 
   static GetDependencies() {
     return {
@@ -16,30 +15,23 @@ export class Client {
 
   public constructor(private _connectionString: string) {}
 
-  public get record(): Record {
-    if (!this._record) {
-      this._record = new Record(this.client);
-    }
-
-    return this._record;
-  }
-
   public login(authData: IProviderConnectionData | IConnectionData): Observable < any > {
     if (this.client) {
       this.client.close()
     }
-    console.log("Deepstream client is logging in... with data: ", JSON.stringify(authData, null, 2))
+    Logger.debug("Deepstream client is logging in.")
+    Logger.debug("Login data: ", JSON.stringify(authData, null, 2))
     this.client = Client.GetDependencies().deepstream(this._connectionString)
     this.client.login(authData)
 
     let errObs = Observable.fromEvent(this.client, "error")
     .do(state => {
-      console.log("Error happened: ", state)
+      Logger.debug("Error happened: ", state)
     })
     .subscribe()
 
     return Observable.fromEvent(this.client, "connectionStateChanged")
-    .do(state => console.log("Deepstream client connection state: ", state))
+    .do(state => Logger.debug("Deepstream client connection state: ", state))
     .filter(state => state === 'OPEN')
     .take(1)
     .do(() => errObs.unsubscribe())
@@ -56,7 +48,7 @@ export class Client {
         })
         this.client.close()
       }) 
-      .do(() => console.log(`Deepstream client is logged out`))
+      .do(() => Logger.debug(`Deepstream client is logged out`))
 
       return obs$
     } else {
