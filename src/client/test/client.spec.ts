@@ -2,21 +2,22 @@ import {Client} from '..';
 import {Record} from '../../record';
 
 import {EventEmitter} from 'events';
-let deepstream = require('deepstream.io-client-js');
+import deepstream = require('deepstream.io-client-js');
+import {CONSTANTS} from 'deepstream.io-client-js';
 
 describe('When the deepstream client is up and running, the client', () => {
   class MockDeepstream extends EventEmitter {
-    private _state = deepstream.CONSTANTS.CONNECTION_STATE.OPEN;
+    private _state = CONSTANTS.OPEN;
     constructor() {
       super();
     }
 
     public login = jasmine.createSpy('login').and.callFake(() => {
-      this._state = deepstream.CONSTANTS.CONNECTION_STATE.OPEN;
+      this._state = deepstream.CONSTANTS.OPEN;
     });
 
     public close = jasmine.createSpy('close').and.callFake(() => {
-      this._state = deepstream.CONSTANTS.CONNECTION_STATE.CLOSED;
+      this._state = deepstream.CONSTANTS.CLOSED;
     });
 
     public getConnectionState() {
@@ -117,6 +118,6 @@ describe('When the deepstream client is up and running, the client', () => {
 
 describe('Without mocking the deepstream dependencies', () => {
   it('GetDependencies should return the deepstream factory', () => {
-    expect(Client.GetDependencies()).not.toBeNull;
+    expect(Client.GetDependencies()).not.toBeNull();
   });
 });

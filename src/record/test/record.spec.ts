@@ -1,7 +1,7 @@
-import { Observable } from 'rxjs';
+import {Observable} from 'rxjs';
 
-import { Record } from '..';
-import { Client } from '../../client';
+import {Record} from '..';
+import {Client} from '../../client';
 
 describe('Test Record', () => {
   let setDataSpy: any;

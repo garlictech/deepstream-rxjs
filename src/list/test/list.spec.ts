@@ -1,7 +1,7 @@
-import { Observable } from 'rxjs';
+import {Observable} from 'rxjs';
 
-import { List } from '..';
-import { Client } from '../../client';
+import {List} from '..';
+import {Client} from '../../client';
 
 describe('Test List', () => {
   let addEntrySpy: any;

@@ -17,4 +17,4 @@ logger.addColors({
   info: 'green'
 });
 
-export { logger as Logger };
+export {logger as Logger};

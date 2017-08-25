@@ -1,5 +1,5 @@
-import { Rpc } from '..';
-import { Client } from '../../client';
+import {Rpc} from '..';
+import {Client} from '../../client';
 
 describe('When the rpc call is successfull', () => {
   it('should return a resolved promise', async () => {
@@ -43,11 +43,11 @@ describe('When the rpc call is unsuccessfull', () => {
 
   describe('When the error is a json object', () => {
     it('should return the parsed object, not the error string', async () => {
-      const errorObj = { error: 'error' };
+      const errorObj = {error: 'error'};
       class MockClient extends Client {
         constructor(_connectionString: string) {
           super(_connectionString);
-          this.client = { rpc: { make: (name, data, cb) => cb(errorObj, null) } };
+          this.client = {rpc: {make: (name, data, cb) => cb(errorObj, null)}};
         }
       }
 

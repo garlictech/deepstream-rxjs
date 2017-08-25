@@ -1,7 +1,7 @@
-import { Observable } from 'rxjs';
+import {Observable} from 'rxjs';
 
-import { Query } from '..';
-import { Client } from '../../client';
+import {Query} from '..';
+import {Client} from '../../client';
 
 describe('Test Query', () => {
   let getListSpy: any;
