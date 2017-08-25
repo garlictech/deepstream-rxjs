@@ -1,6 +1,6 @@
-import { Observable, Observer } from 'rxjs';
-import { Client } from '../client';
-import { Logger } from '../logger';
+import {Observable, Observer} from 'rxjs';
+import {Client} from '../client';
+import {Logger} from '../logger';
 
 export class Record {
   constructor(private _client: Client, private _name: string) {}

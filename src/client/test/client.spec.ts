@@ -1,7 +1,7 @@
-import { Client } from '..';
-import { Record } from '../../record';
+import {Client} from '..';
+import {Record} from '../../record';
 
-import { EventEmitter } from 'events';
+import {EventEmitter} from 'events';
 let deepstream = require('deepstream.io-client-js');
 
 describe('When the deepstream client is up and running, the client', () => {
@@ -26,7 +26,7 @@ describe('When the deepstream client is up and running, the client', () => {
 
   let mockDeepstream: any;
   let deepstreamStub;
-  let loginData = { providerName: 'UNIT TEST PROVIDER', jwtToken: 'foobar' };
+  let loginData = {providerName: 'UNIT TEST PROVIDER', jwtToken: 'foobar'};
   let connectionString = 'foobar';
 
   beforeEach(() => {
@@ -37,7 +37,7 @@ describe('When the deepstream client is up and running, the client', () => {
     });
 
     spyOn(Client, 'GetDependencies').and.callFake(() => {
-      return { deepstream: deepstreamStub };
+      return {deepstream: deepstreamStub};
     });
   });
 
