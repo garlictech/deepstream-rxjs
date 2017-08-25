@@ -1,19 +1,18 @@
-import {Client} from '..';
-import {Record} from '../../record';
+import { Client } from '..';
+import { Record } from '../../record';
 
-import {EventEmitter} from 'events';
-import deepstream = require('deepstream.io-client-js');
-import {CONSTANTS} from 'deepstream.io-client-js';
+import { EventEmitter } from 'events';
+let deepstream = require('deepstream.io-client-js');
 
 describe('When the deepstream client is up and running, the client', () => {
   class MockDeepstream extends EventEmitter {
-    private _state = CONSTANTS.OPEN;
+    private _state = deepstream.CONSTANTS.CONNECTION_STATE.OPEN;
     constructor() {
       super();
     }
 
     public login = jasmine.createSpy('login').and.callFake(() => {
-      this._state = deepstream.CONSTANTS.OPEN;
+      this._state = deepstream.CONSTANTS.CONNECTION_STATE.OPEN;
     });
 
     public close = jasmine.createSpy('close').and.callFake(() => {
@@ -27,7 +26,7 @@ describe('When the deepstream client is up and running, the client', () => {
 
   let mockDeepstream: any;
   let deepstreamStub;
-  let loginData = {providerName: 'UNIT TEST PROVIDER', jwtToken: 'foobar'};
+  let loginData = { providerName: 'UNIT TEST PROVIDER', jwtToken: 'foobar' };
   let connectionString = 'foobar';
 
   beforeEach(() => {
@@ -38,7 +37,7 @@ describe('When the deepstream client is up and running, the client', () => {
     });
 
     spyOn(Client, 'GetDependencies').and.callFake(() => {
-      return {deepstream: deepstreamStub};
+      return { deepstream: deepstreamStub };
     });
   });
 
@@ -66,7 +65,7 @@ describe('When the deepstream client is up and running, the client', () => {
     mockDeepstream.emit('connectionStateChanged', 'OPEN');
   });
 
-  it('should be able to logout', done => {
+  it('should be able to logout', async done => {
     let client = new Client(connectionString);
     client
       .login(loginData)

@@ -1,9 +1,8 @@
-import {Observable, Observer} from 'rxjs';
-import deepstream = require('deepstream.io-client-js');
-import {CONSTANTS} from 'deepstream.io-client-js';
+import { Observable, Observer } from 'rxjs';
+let deepstream = require('deepstream.io-client-js');
 
-import {Logger} from '../logger';
-import {IProviderConnectionData, IConnectionData} from '../interfaces';
+import { Logger } from '../logger';
+import { IProviderConnectionData, IConnectionData } from '../interfaces';
 
 export class Client {
   public client;
@@ -57,6 +56,6 @@ export class Client {
   }
 
   public isConnected(): boolean {
-    return this.client && this.client.getConnectionState() === CONSTANTS.OPEN;
+    return this.client && this.client.getConnectionState() === deepstream.CONSTANTS.CONNECTION_STATE.OPEN;
   }
 }
