@@ -1,6 +1,6 @@
-import { Observable, Observer } from 'rxjs'
-import { Client } from '../client'
-import { Logger } from '../logger'
+import {Observable, Observer} from 'rxjs';
+import {Client} from '../client';
+import {Logger} from '../logger';
 
 export class Query {
   constructor(private _client: Client) {}
@@ -8,11 +8,11 @@ export class Query {
   query(query: any): Observable<any> {
     let queryString = JSON.stringify(query);
     let name = `search?${queryString}`;
-    
+
     let list = this._client.client.record.getList(name);
-    
+
     let observable = new Observable<any>((obs: Observer<any>) => {
-      list.subscribe((data) => {
+      list.subscribe(data => {
         obs.next(data);
       }, true);
 
