@@ -1,7 +1,7 @@
 export interface IConnectionData {
-  jwtToken: string
+  jwtToken: string;
 }
 
 export interface IProviderConnectionData extends IConnectionData {
-  providerName: string
+  providerName: string;
 }
