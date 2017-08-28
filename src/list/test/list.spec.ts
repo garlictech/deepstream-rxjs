@@ -1,7 +1,7 @@
-import {Observable} from 'rxjs';
+import { Observable } from 'rxjs';
 
-import {List} from '..';
-import {Client} from '../../client';
+import { List } from '..';
+import { Client } from '../../client';
 
 describe('Test List', () => {
   let addEntrySpy: any;
@@ -35,14 +35,13 @@ describe('Test List', () => {
       let client = new MockClient('atyala');
       let list = new List(client, listName);
 
-      let list$ = list.get();
+      let list$ = list.subscribeForEntries();
       expect(list$ instanceof Observable).toBeTruthy();
 
       let result = await list$.take(1).toPromise();
       let args = getListSpy.calls.mostRecent().args;
 
       expect(args[0]).toEqual(listName);
-      expect(result instanceof Array).toBeTruthy();
       expect(result).toEqual(data);
     });
 
@@ -64,11 +63,10 @@ describe('Test List', () => {
       let client = new MockClient('atyala');
       let list = new List(client, listName);
 
-      let list$ = list.get();
+      let list$ = list.subscribeForEntries();
       expect(list$ instanceof Observable).toBeTruthy();
 
       list$.skip(1).subscribe(list => {
-        expect(list instanceof Array).toBeTruthy();
         expect(list).toEqual(data2);
         done();
       }, done.fail);
