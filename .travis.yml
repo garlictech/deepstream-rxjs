@@ -1,0 +1,21 @@
+language: node_js
+node_js:
+- '6'
+cache:
+  directories:
+  - node_modules
+sudo: required
+install:
+  - npm install
+before_script:
+  - npm install -g gulp-cli
+script:
+  - gulp
+notifications:
+  slack:
+    rooms:
+      secure: RXiOWUDDTf7rP10ZiA5O+HGUd3Q5OYIn48MjAU5M3K3IIE/eohzuut5rOyT6OdfvT3VFqdnc2ltLQlRDHGynItDFd2FT6VXjp23u35yyneZrA2iAv8vA2vZ1uukORxA+pQtJxcxl1j2ObIiApoc6zhkQ6iVuOI6t8Ybt7pgFIzcOS9LjZNiQTDjZJs4qh1157K+hVsNTFD2tq24RnNiZOeyS1PgdipgXYgH38/D83Ch0bJjksMf50mNW8L1DmFeXukzhw320k4wPWzoTaeaTVbxwR3BW1Sxj1WOQoU7WieIAdzyDIftc/5gNjQgXv5XZ1JFK80QJutUCI/BUcdD+OXXw+qZrFGIJe+gd+kM6+hBrGN1FOazW4rm6+jj6MskbkdypAPc+wb5IK6EChStgUWTKUhtdlmEOXwsiScbUTRKiUE9DoZfkUxnINylxznRi+Pn0U2TllKVdOEHgM8VS+9U2ePB3/DRvNvbNe3KLOmyOFqRM/7rmUVOZxqbAaygZ7PzBUB3crNC79pfw2ZMg+PqAaIo9cwTyVr5bycwaBJMkWK3uLaz1gHeioImAb1Fg7pjSPo4vfuD2fEXcrSIm71nGq1pCKDg9zyM/UJ+WB8sB+P3NYctJ2KwvmhjjsoSE+kpn5J4vClqMgtbR0mtxM0t56fnIe9M2pFYTnkwx+BI=
+branches:
+  only:
+  - master
+  - stable
