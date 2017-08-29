@@ -35,7 +35,7 @@ describe('Test Record', () => {
           subscribe: callback => {
             callback(data);
           },
-          unsubscribe: () => {}
+          unsubscribe: () => { /* Empty */ }
         };
       });
 
