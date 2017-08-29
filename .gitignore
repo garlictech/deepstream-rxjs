@@ -50,4 +50,6 @@ secrets.tgz
 *.sublime-project
 *.sublime-workspace
 .vscode/
+
+coverage
 tokens.env
