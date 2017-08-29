@@ -10,30 +10,26 @@ export class List {
     this._list = this._client.client.record.getList(this._name);
   }
 
-  subscribeForEntries(triggerNow: boolean = true): Observable<string> {
+  subscribeForEntries(triggerNow: boolean = true): Observable<string[]> {
     let observable = new Observable<any>((obs: Observer<any>) => {
       this._list.subscribe(data => {
         obs.next(data);
       }, triggerNow);
 
-      // return () => this._list.unsubscribe();
+      // return () => this._list.unsubscribe(unsubscribeCb);
     });
 
     return observable;
   }
 
   subscribeForData(triggerNow: boolean = true): Observable<any> {
-    let observable = new Observable<any>((obs: Observer<any>) => {
-      this._list.subscribe(async (recordNames: string[]) => {
-        recordNames.map(async recordName => {
-          let record = new Record(this._client, recordName);
-          let result = await record.snapshot().toPromise();
-          obs.next(result);
-        });
-      }, triggerNow);
-      // return () => this._list.unsubscribe();
+    return this.subscribeForEntries(triggerNow).switchMap((recordNames: string[]) => {
+      let recordObservables = recordNames.map(recordName => {
+        let record = new Record(this._client, recordName);
+        return record.snapshot();
+      });
+      return Observable.combineLatest(recordObservables);
     });
-    return observable;
   }
 
   addEntry(entry: string, index?: number): void {
