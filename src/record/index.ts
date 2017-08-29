@@ -31,7 +31,6 @@ export class Record {
         obs.next(null);
         obs.complete();
       };
-
       if (typeof value === 'undefined') {
         this._client.client.record.setData(this._name, fieldOrValue, callback);
       } else {
