@@ -10,24 +10,27 @@ export class List {
     this._list = this._client.client.record.getList(this._name);
   }
 
-  subscribeForEntries(triggerNow: boolean = true): Observable<string[]> {
+  subscribeForEntries(): Observable<string[]> {
     let observable = new Observable<any>((obs: Observer<any>) => {
-      this._list.subscribe(data => {
+      let callback = data => {
         obs.next(data);
-      }, triggerNow);
+      };
 
-      // return () => this._list.unsubscribe(unsubscribeCb);
+      this._list.subscribe(callback, true);
+
+      return () => this._list.unsubscribe(callback);
     });
 
     return observable;
   }
 
-  subscribeForData(triggerNow: boolean = true): Observable<any> {
-    return this.subscribeForEntries(triggerNow).switchMap((recordNames: string[]) => {
+  subscribeForData(): Observable<any> {
+    return this.subscribeForEntries().switchMap((recordNames: string[]) => {
       let recordObservables = recordNames.map(recordName => {
         let record = new Record(this._client, recordName);
         return record.snapshot();
       });
+
       return Observable.combineLatest(recordObservables);
     });
   }
