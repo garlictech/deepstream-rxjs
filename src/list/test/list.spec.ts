@@ -6,16 +6,16 @@ import { List } from '..';
 import { Client } from '../../client';
 
 describe('Test List', () => {
-  let addEntrySpy: any;
-  let removeEntrySpy: any;
-  let getListSpy: any;
-  let subscribeSpy;
+  let addEntrySpy: jasmine.Spy;
+  let removeEntrySpy: jasmine.Spy;
+  let getListSpy: jasmine.Spy;
+  let subscribeSpy: jasmine.Spy;
   let client;
-  let snapshotSpy;
-  let setDataSpy;
+  let snapshotSpy: jasmine.Spy;
+  let setDataSpy: jasmine.Spy;
   let listName = 'listName';
-  let getRecordSpy;
-  let discardSpy;
+  let getRecordSpy: jasmine.Spy;
+  let discardSpy: jasmine.Spy;
 
   let data = ['data1', 'data2'];
   let data2 = ['data3', 'data4'];
@@ -81,13 +81,6 @@ describe('Test List', () => {
       expect(argsSubscribe[1]).toBeTruthy();
     });
 
-    it('should call the native subscribe with the provided triggerNow', async () => {
-      let list = new List(client, listName);
-      let list$ = list.subscribeForEntries(false);
-      await list$.take(1).toPromise();
-      let argsSubscribe = subscribeSpy.calls.mostRecent().args;
-      expect(argsSubscribe[1]).toBeFalsy();
-    });
   });
 
   describe('When we try to get the data as stream of data objects', () => {
@@ -111,14 +104,6 @@ describe('Test List', () => {
       // Just check if we can get the next data
       result = await list$.take(1).toPromise();
       expect(result).toEqual(data2);
-    });
-
-    it('should call the native subscribe with the provided triggerNow', async () => {
-      let list = new List(client, listName);
-      let list$ = list.subscribeForData(false);
-      await list$.take(1).toPromise();
-      let argsSubscribe = subscribeSpy.calls.mostRecent().args;
-      expect(argsSubscribe[1]).toBeFalsy();
     });
 
     describe('When data changed', () => {
