@@ -1,7 +1,7 @@
-import {Observable} from 'rxjs';
+import { Observable } from 'rxjs';
 
-import {Record} from '..';
-import {Client} from '../../client';
+import { Record } from '..';
+import { Client } from '../../client';
 
 describe('Test Record', () => {
   let setDataSpy: any;
@@ -28,11 +28,11 @@ describe('Test Record', () => {
   }
 
   describe('When we try to get the data', () => {
-    it('should return an observable', async () => {
+    it('it should return an observable', async () => {
       getRecordSpy = jasmine.createSpy('getRecord').and.callFake(name => {
         return {
           whenReady: callback => callback(),
-          subscribe: callback => {
+          subscribe: (path, callback) => {
             callback(data);
           },
           unsubscribe: () => {
@@ -60,7 +60,7 @@ describe('Test Record', () => {
       getRecordSpy = jasmine.createSpy('getRecord').and.callFake(name => {
         return {
           whenReady: callback => callback(),
-          subscribe: callback => {
+          subscribe: (path, callback) => {
             callback(data);
 
             setTimeout(() => {

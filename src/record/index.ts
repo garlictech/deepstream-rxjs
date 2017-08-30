@@ -1,17 +1,17 @@
-import {Observable, Observer} from 'rxjs';
-import {Client} from '../client';
-import {Logger} from '../logger';
+import { Observable, Observer } from 'rxjs';
+import { Client } from '../client';
+import { Logger } from '../logger';
 
 export class Record {
   constructor(private _client: Client, private _name: string) {}
 
-  public get(): Observable<any> {
+  public get(path?: string): Observable<any> {
     let record = this._client.client.record.getRecord(this._name);
 
     let observable = new Observable<any>((obs: Observer<any>) => {
-      record.subscribe(data => {
+      record.subscribe(path, data => {
         obs.next(data);
-      }, true);
+      });
 
       return () => record.unsubscribe();
     });
