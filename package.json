@@ -14,8 +14,10 @@
   },
   "license": "SEE LICENSE IN license.txt",
   "dependencies": {
+    "@types/debug": "0.0.30",
     "@types/jasmine": "^2.5.54",
     "@types/node": "^8.0.25",
+    "@types/uuid": "^3.4.1",
     "debug": "^3.0.1",
     "deepstream.io-client-js": "^2.2.1",
     "rxjs": "^5.4.2",
