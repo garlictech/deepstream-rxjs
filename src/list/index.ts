@@ -1,7 +1,7 @@
-import { Observable, Observer } from 'rxjs';
-import { Client } from '../client';
-import { Logger } from '../logger';
-import { Record } from '../record';
+import {Observable, Observer} from 'rxjs';
+import {Client} from '../client';
+import {Logger} from '../logger';
+import {Record} from '../record';
 
 export class List {
   private _list;

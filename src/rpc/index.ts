@@ -1,6 +1,6 @@
-import { Observable, Observer } from 'rxjs';
+import {Observable, Observer} from 'rxjs';
 import * as util from 'util';
-import { Client } from '../client';
+import {Client} from '../client';
 
 export class Rpc {
   constructor(private _client: Client) {}

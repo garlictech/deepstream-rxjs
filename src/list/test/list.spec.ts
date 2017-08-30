@@ -1,9 +1,9 @@
-import { Observable } from 'rxjs';
+import {Observable} from 'rxjs';
 import * as _ from 'lodash';
 import * as uuid from 'uuid/v1';
 
-import { List } from '..';
-import { Client } from '../../client';
+import {List} from '..';
+import {Client} from '../../client';
 
 describe('Test List', () => {
   let addEntrySpy: jasmine.Spy;
@@ -27,7 +27,7 @@ describe('Test List', () => {
 
   class MockClient extends Client {
     public client = {
-      record: { getList: getListSpy, snapshot: snapshotSpy, setData: setDataSpy, getRecord: getRecordSpy },
+      record: {getList: getListSpy, snapshot: snapshotSpy, setData: setDataSpy, getRecord: getRecordSpy},
       getUid: () => generatedUid
     };
   }
@@ -80,7 +80,6 @@ describe('Test List', () => {
       expect(subscribeSpy).toHaveBeenCalled();
       expect(argsSubscribe[1]).toBeTruthy();
     });
-
   });
 
   describe('When we try to get the data as stream of data objects', () => {
@@ -157,7 +156,7 @@ describe('Test List', () => {
   });
 
   describe('When adding data with addRecord', () => {
-    let dataToAdd = { foo: 'bar' };
+    let dataToAdd = {foo: 'bar'};
     let list;
 
     beforeEach(() => {

@@ -4,4 +4,4 @@ let logger = {
   debug: debug('deepstream-rxjs')
 };
 
-export { logger as Logger };
+export {logger as Logger};

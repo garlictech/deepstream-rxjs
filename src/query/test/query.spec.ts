@@ -1,8 +1,8 @@
-import { Observable } from 'rxjs';
+import {Observable} from 'rxjs';
 import * as _ from 'lodash';
 
-import { Query } from '..';
-import { Client } from '../../client';
+import {Query} from '..';
+import {Client} from '../../client';
 
 describe('Test Query', () => {
   let getListSpy: jasmine.Spy;
@@ -25,12 +25,9 @@ describe('Test Query', () => {
   }
 
   beforeEach(() => {
-    subscribeSpy = jasmine
-      .createSpy('subscribe')
-      .and
-      .callFake(callback => {
-        callback(recordNames);
-      });
+    subscribeSpy = jasmine.createSpy('subscribe').and.callFake(callback => {
+      callback(recordNames);
+    });
 
     snapshotSpy = jasmine
       .createSpy('snapshot')
@@ -123,7 +120,9 @@ describe('Test Query', () => {
               callback(data2);
             }, 100);
           },
-          unsubscribe: () => { /* Empty */ }
+          unsubscribe: () => {
+            /* Empty */
+          }
         };
       });
 
