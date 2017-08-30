@@ -25,12 +25,9 @@ describe('Test Query', () => {
   }
 
   beforeEach(() => {
-    subscribeSpy = jasmine
-      .createSpy('subscribe')
-      .and
-      .callFake(callback => {
-        callback(recordNames);
-      });
+    subscribeSpy = jasmine.createSpy('subscribe').and.callFake(callback => {
+      callback(recordNames);
+    });
 
     snapshotSpy = jasmine
       .createSpy('snapshot')
@@ -81,7 +78,7 @@ describe('Test Query', () => {
       let query = new Query(client);
 
       let queryObject = {
-        tableName: tableName,
+        table: tableName,
         query: [['title', 'match', 'test']]
       };
 
@@ -104,7 +101,7 @@ describe('Test Query', () => {
       expect(argsSubscribe[1]).toBeTruthy();
 
       let snapshotArgs = snapshotSpy.calls.mostRecent().args;
-      expect(snapshotArgs[0]).toEqual(recordNames[1]);
+      expect(snapshotArgs[0]).toEqual(`${tableName}/${recordNames[1]}`);
       // Just check if we can get the next data
       result = await query$.take(1).toPromise();
       expect(result).toEqual(data2);
@@ -123,7 +120,9 @@ describe('Test Query', () => {
               callback(data2);
             }, 100);
           },
-          unsubscribe: () => { /* Empty */ }
+          unsubscribe: () => {
+            /* Empty */
+          }
         };
       });
 
