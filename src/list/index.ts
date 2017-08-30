@@ -1,12 +1,12 @@
-import {Observable, Observer} from 'rxjs';
-import {Client} from '../client';
-import {Logger} from '../logger';
-import {Record} from '../record';
+import { Observable, Observer } from 'rxjs';
+import { Client } from '../client';
+import { Logger } from '../logger';
+import { Record } from '../record';
 
 export class List {
   private _list;
 
-  constructor(private _client: Client, private _name: string) {
+  constructor(protected _client: Client, private _name: string) {
     this._list = this._client.client.record.getList(this._name);
   }
 
@@ -27,8 +27,8 @@ export class List {
   subscribeForData(): Observable<any> {
     return this.subscribeForEntries().switchMap((recordNames: string[]) => {
       let recordObservables = recordNames.map(recordName => {
-        let record = new Record(this._client, recordName);
-        return record.snapshot();
+        let record = this._createRecord(recordName);
+        return record.get();
       });
 
       return Observable.combineLatest(recordObservables);
@@ -52,5 +52,9 @@ export class List {
 
   discard() {
     this._list.discard();
+  }
+
+  protected _createRecord(recordName: string): Record {
+    return new Record(this._client, recordName);
   }
 }

@@ -1,9 +1,10 @@
-import {Observable} from 'rxjs';
+import { Observable } from 'rxjs';
 import * as _ from 'lodash';
 import * as uuid from 'uuid/v1';
 
-import {List} from '..';
-import {Client} from '../../client';
+import { List } from '..';
+import { Client } from '../../client';
+import { Record } from '../../record';
 
 describe('Test List', () => {
   let addEntrySpy: jasmine.Spy;
@@ -27,9 +28,27 @@ describe('Test List', () => {
 
   class MockClient extends Client {
     public client = {
-      record: {getList: getListSpy, snapshot: snapshotSpy, setData: setDataSpy, getRecord: getRecordSpy},
-      getUid: () => generatedUid
+      record: { getList: getListSpy, snapshot: snapshotSpy, setData: setDataSpy, getRecord: getRecordSpy },
+      getUid: () => generatedUid,
+      on: () => {
+        /* EMPTY */
+      }
     };
+  }
+
+  class MockRecord extends Record {
+    static getSpy;
+    constructor(_client, recordName) {
+      super(_client, recordName);
+      MockRecord.getSpy = jasmine.createSpy('get').and.returnValue(Observable.of('value'));
+      this.get = MockRecord.getSpy;
+    }
+  }
+
+  class MockList extends List {
+    _createRecord(recordName) {
+      return new MockRecord(this._client, recordName);
+    }
   }
 
   beforeEach(() => {
@@ -68,7 +87,7 @@ describe('Test List', () => {
 
   describe('When we try to get the data as stream of entries', () => {
     it('should return an observable', async () => {
-      let list = new List(client, listName);
+      let list = new MockList(client, listName);
       let list$ = list.subscribeForEntries();
       expect(list$ instanceof Observable).toBeTruthy();
 
@@ -84,12 +103,12 @@ describe('Test List', () => {
 
   describe('When we try to get the data as stream of data objects', () => {
     it('should return an observable', async () => {
-      let list = new List(client, listName);
+      let list = new MockList(client, listName);
       let list$ = list.subscribeForData();
       expect(list$ instanceof Observable).toBeTruthy();
 
       let result = await list$.take(1).toPromise();
-      expect(result).toEqual(data);
+      expect(result).toEqual(['value', 'value']);
       let args = getListSpy.calls.mostRecent().args;
       expect(args[0]).toEqual(listName);
 
@@ -97,12 +116,6 @@ describe('Test List', () => {
       expect(subscribeSpy).toHaveBeenCalled();
       expect(argsSubscribe[0] instanceof Function).toBeTruthy();
       expect(argsSubscribe[1]).toBeTruthy();
-
-      let snapshotArgs = snapshotSpy.calls.mostRecent().args;
-      expect(snapshotArgs[0]).toEqual(recordNames[1]);
-      // Just check if we can get the next data
-      result = await list$.take(1).toPromise();
-      expect(result).toEqual(data2);
     });
 
     describe('When data changed', () => {
@@ -156,7 +169,7 @@ describe('Test List', () => {
   });
 
   describe('When adding data with addRecord', () => {
-    let dataToAdd = {foo: 'bar'};
+    let dataToAdd = { foo: 'bar' };
     let list;
 
     beforeEach(() => {
@@ -185,5 +198,18 @@ describe('Test List', () => {
       list.discard();
       expect(discardSpy).toHaveBeenCalled();
     });
+  });
+
+  it('Test the dependency creator functions', () => {
+    class MockListForCoverage extends List {
+      public record;
+      public createDependencyInstances() {
+        this.record = this._createRecord('name');
+      }
+    }
+
+    let list = new MockListForCoverage(client, 'listname');
+    list.createDependencyInstances();
+    expect(list.record instanceof Record).toBeTruthy();
   });
 });

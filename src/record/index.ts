@@ -7,13 +7,18 @@ export class Record {
 
   public get(path?: string): Observable<any> {
     let record = this._client.client.record.getRecord(this._name);
-
     let observable = new Observable<any>((obs: Observer<any>) => {
+      this._client.client.on('error', (err, msg) => {
+        obs.error(msg);
+      });
       record.subscribe(path, data => {
         obs.next(data);
       });
 
-      return () => record.unsubscribe();
+      return () => {
+        this._client.client.removeEventListener('error');
+        record.discard();
+      };
     });
 
     return observable;
@@ -40,15 +45,6 @@ export class Record {
   }
 
   public snapshot() {
-    return new Observable<any>((obs: Observer<any>) => {
-      this._client.client.record.snapshot(this._name, (err, result) => {
-        if (err) {
-          obs.error(err);
-        }
-
-        obs.next(result);
-        obs.complete();
-      });
-    });
+    return this.get().take(1);
   }
 }

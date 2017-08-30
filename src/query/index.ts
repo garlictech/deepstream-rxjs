@@ -1,10 +1,10 @@
-import {Observable, Observer} from 'rxjs';
-import {Client} from '../client';
-import {Record} from '../record';
-import {Logger} from '../logger';
+import { Observable, Observer } from 'rxjs';
+import { Client } from '../client';
+import { Record } from '../record';
+import { Logger } from '../logger';
 
 export class Query {
-  constructor(private _client: Client) {}
+  constructor(protected _client: Client) {}
 
   queryForEntries(query: any): Observable<any> {
     let queryString = JSON.stringify(query);
@@ -25,11 +25,14 @@ export class Query {
   queryForData(query: any): Observable<any> {
     return this.queryForEntries(query).switchMap((recordNames: string[]) => {
       let recordObservables = recordNames.map(recordName => {
-        let record = new Record(this._client, recordName);
-        return record.snapshot();
+        let record = this._createRecord(recordName);
+        return record.get();
       });
 
       return Observable.combineLatest(recordObservables);
     });
+  }
+  protected _createRecord(recordName: string): Record {
+    return new Record(this._client, recordName);
   }
 }
