@@ -1,5 +1,5 @@
 import { Observable, Observer } from 'rxjs';
-import { Client }  from '../client';
+import { Client } from '../client';
 import { Record } from '../record';
 import { Logger } from '../logger';
 
@@ -23,16 +23,13 @@ export class Query {
   }
 
   queryForData(query: any): Observable<any> {
-    return this
-      .queryForEntries(query)
-      .switchMap((recordNames: string[]) => {
-        let recordObservables = recordNames.map(recordName => {
-          let record = new Record(this._client, recordName);
-          return record.snapshot();
-        });
-
-        return Observable.combineLatest(recordObservables);
+    return this.queryForEntries(query).switchMap((recordNames: string[]) => {
+      let recordObservables = recordNames.map(recordName => {
+        let record = new Record(this._client, `${query.table}/${recordName}`);
+        return record.snapshot();
       });
-  }
 
+      return Observable.combineLatest(recordObservables);
+    });
+  }
 }
