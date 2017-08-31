@@ -1,20 +1,24 @@
-import * as logger from 'winston';
+// import * as logger from 'winston';
 
-logger.configure({
-  level: process.env.LOG_LEVEL || 'debug',
-  transports: [
-    new logger.transports.Console({
-      colorize: true,
-      timestamp: true
-    })
-  ]
-});
+// logger.configure({
+//   level: process.env.LOG_LEVEL || 'debug',
+//   transports: [
+//     new logger.transports.Console({
+//       colorize: true,
+//       timestamp: true
+//     })
+//   ]
+// });
 
-logger.addColors({
-  error: 'red',
-  warn: 'yellow',
-  debug: 'blue',
-  info: 'green'
-});
+// logger.addColors({
+//   error: 'red',
+//   warn: 'yellow',
+//   debug: 'blue',
+//   info: 'green'
+// });
 
-export {logger as Logger};
+let logger = {
+  debug: console.log
+};
+
+export { logger as Logger };

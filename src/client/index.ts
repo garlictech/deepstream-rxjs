@@ -1,8 +1,8 @@
-import {Observable, Observer} from 'rxjs';
+import { Observable, Observer } from 'rxjs';
 let deepstream = require('deepstream.io-client-js');
 
-import {Logger} from '../logger';
-import {IProviderConnectionData, IConnectionData} from '../interfaces';
+import { Logger } from '../logger';
+import { IProviderConnectionData, IConnectionData } from '../interfaces';
 
 export class Client {
   public client;
@@ -26,7 +26,9 @@ export class Client {
 
     let errObs = Observable.fromEvent(this.client, 'error')
       .do(state => {
-        Logger.debug('Error happened: ', state);
+        Logger.debug('Error happened: ');
+        console.log(state);
+        Logger.debug(JSON.stringify(state, null, 2));
       })
       .subscribe();
 
