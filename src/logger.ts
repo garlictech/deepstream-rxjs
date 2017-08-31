@@ -1,21 +1,8 @@
-// import * as logger from 'winston';
+import * as debug from 'debug';
 
-// logger.configure({
-//   level: process.env.LOG_LEVEL || 'debug',
-//   transports: [
-//     new logger.transports.Console({
-//       colorize: true,
-//       timestamp: true
-//     })
-//   ]
-// });
-
-// logger.addColors({
-//   error: 'red',
-//   warn: 'yellow',
-//   debug: 'blue',
-//   info: 'green'
-// });
+let logger = {
+  debug: debug('deepstream-rxjs')
+};
 
 let logger = {
   debug: console.log

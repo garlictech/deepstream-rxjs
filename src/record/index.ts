@@ -5,15 +5,20 @@ import { Logger } from '../logger';
 export class Record {
   constructor(private _client: Client, private _name: string) {}
 
-  public get(): Observable<any> {
+  public get(path?: string): Observable<any> {
     let record = this._client.client.record.getRecord(this._name);
-
     let observable = new Observable<any>((obs: Observer<any>) => {
-      record.subscribe(data => {
+      this._client.client.on('error', (err, msg) => {
+        obs.error(msg);
+      });
+      record.subscribe(path, data => {
         obs.next(data);
-      }, true);
+      });
 
-      return () => record.unsubscribe();
+      return () => {
+        this._client.client.removeEventListener('error');
+        record.discard();
+      };
     });
 
     return observable;
@@ -40,15 +45,6 @@ export class Record {
   }
 
   public snapshot() {
-    return new Observable<any>((obs: Observer<any>) => {
-      this._client.client.record.snapshot(this._name, (err, result) => {
-        if (err) {
-          obs.error(err);
-        }
-
-        obs.next(result);
-        obs.complete();
-      });
-    });
+    return this.get().take(1);
   }
 }

@@ -1,7 +1,8 @@
-import {Observable} from 'rxjs';
+import { Observable } from 'rxjs';
 
-import {Record} from '..';
-import {Client} from '../../client';
+import { Record } from '..';
+import { Client } from '../../client';
+import { EventEmitter } from 'events';
 
 describe('Test Record', () => {
   let setDataSpy: any;
@@ -23,19 +24,24 @@ describe('Test Record', () => {
         setData: setDataSpy,
         snapshot: snapshotSpy,
         getRecord: getRecordSpy
+      },
+      on: () => {
+        /* EMPTY */
       }
     };
   }
 
   describe('When we try to get the data', () => {
-    it('should return an observable', async () => {
+    it('it should return an observable', async () => {
       getRecordSpy = jasmine.createSpy('getRecord').and.callFake(name => {
         return {
           whenReady: callback => callback(),
-          subscribe: callback => {
+          subscribe: (path, callback) => {
             callback(data);
           },
-          unsubscribe: () => { /* Empty */ }
+          unsubscribe: () => {
+            /* Empty */
+          }
         };
       });
 
@@ -58,7 +64,7 @@ describe('Test Record', () => {
       getRecordSpy = jasmine.createSpy('getRecord').and.callFake(name => {
         return {
           whenReady: callback => callback(),
-          subscribe: callback => {
+          subscribe: (path, callback) => {
             callback(data);
 
             setTimeout(() => {
@@ -140,26 +146,49 @@ describe('Test Record', () => {
 
       let client = new MockClient('atyala');
       let record = new Record(client, recordName);
+      spyOn(record, 'get').and.returnValue(Observable.of({}));
       let result = await record.snapshot().toPromise();
-      let args = snapshotSpy.calls.mostRecent().args;
-      expect(args[0]).toEqual(recordName);
-      expect(result).toEqual(data);
+      expect(record.get).toHaveBeenCalled();
     });
   });
 
-  describe('When the snapshot returns error', () => {
-    it('should throw error', async done => {
-      snapshotSpy = jasmine.createSpy('snapshot').and.callFake((name, cb) => {
-        cb('error', data);
-      });
+  describe('When the record subscription has error', () => {
+    let discardSpy = jasmine.createSpy('discard');
+    class MockDeepstream extends EventEmitter {
+      record = {
+        getRecord: jasmine.createSpy('getRecord').and.callFake(name => {
+          return {
+            discard: discardSpy,
+            subscribe: (path, callback) => {
+              callback(data);
+            }
+          };
+        }),
+        subscribe: jasmine.createSpy('subscribeSpy')
+      };
+      removeEventListener = jasmine.createSpy('removeEventListener');
+    }
 
-      let client = new MockClient('atyala');
-      let record = new Record(client, recordName);
+    it('it should pass the error to the rxjs observable', done => {
+      class MockEventClient extends Client {
+        public client = new MockDeepstream();
+      }
 
-      await record.snapshot().toPromise().catch(err => {
-        expect(err).toEqual('error');
-        done();
-      });
+      let mockClient = new MockEventClient('connstr');
+      let record = new Record(mockClient, 'record');
+      let subs = record.get().subscribe(
+        () => {
+          /* EMPTY */
+        },
+        err => {
+          expect(err).toEqual('MESSAGE');
+          subs.unsubscribe();
+          expect(mockClient.client.removeEventListener).toHaveBeenCalledWith('error');
+          expect(discardSpy).toHaveBeenCalled();
+          done();
+        }
+      );
+      mockClient.client.emit('error', 'ERR', 'MESSAGE');
     });
   });
 });

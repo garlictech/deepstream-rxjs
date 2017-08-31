@@ -3,6 +3,8 @@ import * as _ from 'lodash';
 
 import { Query } from '..';
 import { Client } from '../../client';
+import { Record } from '../../record';
+import { List } from '../../list';
 
 describe('Test Query', () => {
   let getListSpy: jasmine.Spy;
@@ -24,13 +26,25 @@ describe('Test Query', () => {
     };
   }
 
+  class MockRecord extends Record {
+    static getSpy;
+    constructor(_client, recordName) {
+      super(_client, recordName);
+      MockRecord.getSpy = jasmine.createSpy('get').and.returnValue(Observable.of('value'));
+      this.get = MockRecord.getSpy;
+    }
+  }
+
+  class MockQuery extends Query {
+    _createRecord(recordName) {
+      return new MockRecord(this._client, recordName);
+    }
+  }
+
   beforeEach(() => {
-    subscribeSpy = jasmine
-      .createSpy('subscribe')
-      .and
-      .callFake(callback => {
-        callback(recordNames);
-      });
+    subscribeSpy = jasmine.createSpy('subscribe').and.callFake(callback => {
+      callback(recordNames);
+    });
 
     snapshotSpy = jasmine
       .createSpy('snapshot')
@@ -78,7 +92,7 @@ describe('Test Query', () => {
   describe('When we try get the data with the query', () => {
     it('should return an observable', async () => {
       let client = new MockClient('atyala');
-      let query = new Query(client);
+      let query = new MockQuery(client);
 
       let queryObject = {
         tableName: tableName,
@@ -96,18 +110,16 @@ describe('Test Query', () => {
 
       expect(args[0]).toEqual(`search?${queryString}`);
       expect(result instanceof Array).toBeTruthy();
-      expect(result).toEqual(data);
+      expect(result).toEqual(['value', 'value']);
 
       let argsSubscribe = subscribeSpy.calls.mostRecent().args;
       expect(subscribeSpy).toHaveBeenCalled();
       expect(argsSubscribe[0] instanceof Function).toBeTruthy();
       expect(argsSubscribe[1]).toBeTruthy();
 
-      let snapshotArgs = snapshotSpy.calls.mostRecent().args;
-      expect(snapshotArgs[0]).toEqual(recordNames[1]);
       // Just check if we can get the next data
       result = await query$.take(1).toPromise();
-      expect(result).toEqual(data2);
+      expect(result).toEqual(['value', 'value']);
     });
   });
 
@@ -123,7 +135,9 @@ describe('Test Query', () => {
               callback(data2);
             }, 100);
           },
-          unsubscribe: () => { /* Empty */ }
+          unsubscribe: () => {
+            /* Empty */
+          }
         };
       });
 
@@ -143,5 +157,18 @@ describe('Test Query', () => {
         done();
       }, done.fail);
     });
+  });
+
+  it('Test the dependency creator functions', () => {
+    class MockQueryForCoverage extends Query {
+      public record;
+      public createDependencyInstances() {
+        this.record = this._createRecord('name');
+      }
+    }
+
+    let list = new MockQueryForCoverage(null);
+    list.createDependencyInstances();
+    expect(list.record instanceof Record).toBeTruthy();
   });
 });
