@@ -9,11 +9,6 @@ export interface IClientData {
   username: string
 }
 
-export interface ILoginData {
-  success: boolean,
-  clientData: IClientData
-}
-
 export class Client {
   public client;
 
