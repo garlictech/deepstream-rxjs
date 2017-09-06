@@ -4,7 +4,7 @@ import { Logger } from '../logger';
 import { Record } from '../record';
 
 export class List {
-  private _list;
+  protected _list;
 
   constructor(protected _client: Client, private _name: string) {
     this._list = this._client.client.record.getList(this._name);
@@ -12,12 +12,8 @@ export class List {
 
   subscribeForEntries(): Observable<string[]> {
     let observable = new Observable<any>((obs: Observer<any>) => {
-      let callback = data => {
-        obs.next(data);
-      };
-
-      this._list.subscribe(callback, true);
-
+      let callback = data => obs.next(data);
+      this._list.whenReady(() => this._list.subscribe(callback, true));
       return () => this._list.unsubscribe(callback);
     });
 
@@ -26,12 +22,9 @@ export class List {
 
   subscribeForData(): Observable<any> {
     return this.subscribeForEntries().switchMap((recordNames: string[]) => {
-      let recordObservables = recordNames.map(recordName => {
-        let record = this._createRecord(recordName);
-        return record.get();
-      });
+      let recordObservables = recordNames.map(recordName => this._createRecord(recordName).get());
 
-      return Observable.combineLatest(recordObservables);
+      return recordObservables.length ? Observable.combineLatest(recordObservables) : Observable.of([]);
     });
   }
 
@@ -52,6 +45,23 @@ export class List {
 
   discard() {
     this._list.discard();
+  }
+
+  recordAdded() {
+    let observable = new Observable<any>((obs: Observer<any>) => {
+      let callback = (entry, pos) => {
+        let record = this._createRecord(entry);
+        record
+          .get()
+          .take(1)
+          .subscribe(data => obs.next({ data: data, position: pos }));
+      };
+
+      this._list.on('entry-added', callback);
+      return () => this._list.off('entry-added', callback);
+    });
+
+    return observable;
   }
 
   protected _createRecord(recordName: string): Record {
