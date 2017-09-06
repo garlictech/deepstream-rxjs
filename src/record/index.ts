@@ -44,6 +44,16 @@ export class Record {
     });
   }
 
+  public exists(): Observable<boolean> {
+    return new Observable<boolean>((obs: Observer<boolean>) => {
+      let callback = exists => {
+        obs.next(exists);
+        obs.complete();
+      };
+      this._client.client.record.has(this._name, callback);
+    });
+  }
+
   public snapshot() {
     return this.get().take(1);
   }
