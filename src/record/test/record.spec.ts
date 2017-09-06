@@ -8,6 +8,7 @@ describe('Test Record', () => {
   let setDataSpy: any;
   let snapshotSpy: any;
   let getRecordSpy: any;
+  let hasSpy: any;
   let recordName = 'recordName';
 
   let data = {
@@ -23,7 +24,8 @@ describe('Test Record', () => {
       record: {
         setData: setDataSpy,
         snapshot: snapshotSpy,
-        getRecord: getRecordSpy
+        getRecord: getRecordSpy,
+        has: hasSpy
       },
       on: () => {
         /* EMPTY */
@@ -131,10 +133,13 @@ describe('Test Record', () => {
       let client = new MockClient('atyala');
       let record = new Record(client, recordName);
 
-      await record.set(data).toPromise().catch(err => {
-        expect(err).toEqual('error');
-        done();
-      });
+      await record
+        .set(data)
+        .toPromise()
+        .catch(err => {
+          expect(err).toEqual('error');
+          done();
+        });
     });
   });
 
@@ -189,6 +194,18 @@ describe('Test Record', () => {
         }
       );
       mockClient.client.emit('error', 'ERR', 'MESSAGE');
+    });
+  });
+
+  describe('When we try to check if a record exists', () => {
+    it('should invoke the has method on ds', () => {
+      hasSpy = jasmine.createSpy('getRecord').and.callFake((name, cb) => cb(true));
+
+      let mockClient = new MockClient('connstr');
+      let record = new Record(mockClient, 'existingRecord');
+      let result = record.exists().toPromise();
+      expect(hasSpy).toHaveBeenCalledWith('existingRecord', jasmine.any(Function));
+      expect(result).toBeTruthy();
     });
   });
 });
