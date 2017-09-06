@@ -1,10 +1,10 @@
+import { EventEmitter } from 'events';
 import sms = require('source-map-support');
 sms.install();
+let deepstream = require('deepstream.io-client-js');
+import { Observable } from 'rxjs';
 import { Client } from '..';
 import { Record } from '../../record';
-
-import { EventEmitter } from 'events';
-let deepstream = require('deepstream.io-client-js');
 
 describe('When the deepstream client is up and running, the client', () => {
   class MockDeepstream extends EventEmitter {
@@ -13,8 +13,25 @@ describe('When the deepstream client is up and running, the client', () => {
       super();
     }
 
-    public login = jasmine.createSpy('login').and.callFake(() => {
+    public login = jasmine.createSpy('login').and.callFake((authData, callback = (success, data) => {
+      /* Empty */
+    }) => {
       this._state = deepstream.CONSTANTS.CONNECTION_STATE.OPEN;
+
+      this.on('connectionStateChanged', state => {
+        switch (state) {
+          case 'OPEN':
+            callback(true, {
+              username: 'foobar'
+            });
+            break;
+
+          case 'TESTFAIL':
+            this._state = deepstream.CONSTANTS.CONNECTION_STATE.AWAITING_AUTHENTICATION;
+            callback(false, null);
+            break;
+        }
+      });
     });
 
     public close = jasmine.createSpy('close').and.callFake(() => {
@@ -47,15 +64,74 @@ describe('When the deepstream client is up and running, the client', () => {
     let client = new Client(connectionString);
     expect(client.isConnected()).toBeFalsy();
 
-    client.login(loginData).subscribe(() => {
+    client.login(loginData).subscribe(loginResponse => {
+      let args;
+
       expect(deepstreamStub).toHaveBeenCalledWith(connectionString);
       expect(Client.GetDependencies).toHaveBeenCalled();
-      expect(mockDeepstream.login).toHaveBeenCalledWith(loginData);
+      expect(mockDeepstream.login).toHaveBeenCalled();
+      args = mockDeepstream.login.calls.mostRecent().args;
+      expect(args[0]).toEqual(loginData);
+      expect(loginResponse.username).toEqual('foobar');
       expect(client.isConnected()).toBeTruthy();
+      done();
+    }, done.fail);
+
+    mockDeepstream.emit('connectionStateChanged', 'OPEN');
+  });
+
+  it('should subscribe to state changes', done => {
+    let client = new Client(connectionString);
+
+    client.login(loginData).subscribe(() => {
+      // Do nothing
+    }, done.fail);
+
+    client.states$.subscribe(state => {
+      expect(state).toEqual('TESTSTATE');
       done();
     });
 
-    mockDeepstream.emit('connectionStateChanged', 'OPEN');
+    mockDeepstream.emit('connectionStateChanged', 'TESTSTATE');
+  });
+
+  it('should subscribe to errors', done => {
+    let client = new Client(connectionString);
+
+    client.login(loginData).subscribe(() => {
+      // Do nothing
+    }, done.fail);
+
+    client.errors$.subscribe(state => {
+      expect(state).toEqual('TESTERROR');
+      done();
+    });
+
+    mockDeepstream.emit('error', 'TESTERROR');
+  });
+
+  it('should throw error when login fails', done => {
+    let client = new Client(connectionString);
+    expect(client.isConnected()).toBeFalsy();
+
+    client.login(loginData).subscribe(
+      loginResponse => {
+        done.fail(new Error('Not failed'));
+      },
+      err => {
+        let args;
+
+        expect(deepstreamStub).toHaveBeenCalledWith(connectionString);
+        expect(Client.GetDependencies).toHaveBeenCalled();
+        expect(mockDeepstream.login).toHaveBeenCalled();
+        args = mockDeepstream.login.calls.mostRecent().args;
+        expect(args[0]).toEqual(loginData);
+        expect(client.isConnected()).toBeFalsy();
+        done();
+      }
+    );
+
+    mockDeepstream.emit('connectionStateChanged', 'TESTFAIL');
   });
 
   it('should retry when some calls failed', done => {
