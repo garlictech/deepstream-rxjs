@@ -1,6 +1,7 @@
 import { Observable } from 'rxjs';
 import * as _ from 'lodash';
 import * as uuid from 'uuid/v1';
+import { EventEmitter } from 'events';
 
 import { List } from '..';
 import { Client } from '../../client';
@@ -17,6 +18,7 @@ describe('Test List', () => {
   let listName = 'listName';
   let getRecordSpy: jasmine.Spy;
   let discardSpy: jasmine.Spy;
+  let listOffSpy: jasmine.Spy;
 
   let data = ['data1', 'data2'];
   let data2 = ['data3', 'data4'];
@@ -25,6 +27,7 @@ describe('Test List', () => {
   // The getListSpy.addEntry uses it
   let internalList;
   let recordNames = ['record1', 'record2'];
+  let rawList: MockRawList;
 
   class MockClient extends Client {
     public client = {
@@ -46,9 +49,21 @@ describe('Test List', () => {
   }
 
   class MockList extends List {
-    _createRecord(recordName) {
+    public _createRecord(recordName) {
       return new MockRecord(this._client, recordName);
     }
+  }
+
+  class MockRawList extends EventEmitter {
+    whenReady = callback => callback();
+    subscribe = subscribeSpy;
+    unsubscribe() {
+      /* EMPTY */
+    }
+    addEntry = addEntrySpy;
+    removeEntry = removeEntrySpy;
+    discard = discardSpy;
+    off = listOffSpy;
   }
 
   beforeEach(() => {
@@ -68,18 +83,11 @@ describe('Test List', () => {
     getRecordSpy = jasmine.createSpy('getRecordSpy');
     removeEntrySpy = jasmine.createSpy('removeEntry');
     discardSpy = jasmine.createSpy('discardSpy');
+    listOffSpy = jasmine.createSpy('listOffSpy');
 
     getListSpy = jasmine.createSpy('getList').and.callFake(name => {
-      return {
-        whenReady: callback => callback(),
-        subscribe: subscribeSpy,
-        unsubscribe: () => {
-          /* EMPTY */
-        },
-        addEntry: addEntrySpy,
-        removeEntry: removeEntrySpy,
-        discard: discardSpy
-      };
+      rawList = new MockRawList();
+      return rawList;
     });
     client = new MockClient('atyala');
     internalList = [];
@@ -116,6 +124,16 @@ describe('Test List', () => {
       expect(subscribeSpy).toHaveBeenCalled();
       expect(argsSubscribe[0] instanceof Function).toBeTruthy();
       expect(argsSubscribe[1]).toBeTruthy();
+    });
+
+    describe('When the list on deepstream is empty', () => {
+      it('it should return an empty list', async () => {
+        let list = new MockList(client, listName);
+        spyOn(list, 'subscribeForEntries').and.returnValue(Observable.of([]));
+        let list$ = list.subscribeForData();
+        let result = await list$.take(1).toPromise();
+        expect(result).toEqual([]);
+      });
     });
 
     describe('When data changed', () => {
@@ -211,5 +229,25 @@ describe('Test List', () => {
     let list = new MockListForCoverage(client, 'listname');
     list.createDependencyInstances();
     expect(list.record instanceof Record).toBeTruthy();
+  });
+
+  describe('When subscribing for the "entry-added" event by recordAdded', () => {
+    it('it should return the new entry', done => {
+      const position = 898;
+      const entryName = 'entryName';
+      let list = new MockList(client, listName);
+      spyOn(list, '_createRecord').and.callThrough();
+
+      let subscription = list.recordAdded().subscribe(newRecord => {
+        expect(newRecord).toEqual({ data: 'value', position: position });
+        expect(list._createRecord).toHaveBeenCalledWith(entryName);
+        subscription.unsubscribe();
+        let args = listOffSpy.calls.mostRecent().args;
+        expect(args[0]).toEqual('entry-added');
+        expect(args[1] instanceof Function).toBeTruthy();
+        done();
+      });
+      rawList.emit('entry-added', entryName, position);
+    });
   });
 });

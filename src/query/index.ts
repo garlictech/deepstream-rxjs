@@ -12,11 +12,17 @@ export class Query {
     let list = this._client.client.record.getList(name);
 
     let observable = new Observable<any>((obs: Observer<any>) => {
+      this._client.client.on('error', (err, msg) => {
+        obs.error(msg);
+      });
       list.subscribe(data => {
         obs.next(data);
       }, true);
 
-      return () => list.delete();
+      return () => {
+        this._client.client.removeEventListener('error');
+        list.delete();
+      };
     });
 
     return observable;
@@ -25,7 +31,8 @@ export class Query {
   queryForData(query: any): Observable<any> {
     return this.queryForEntries(query).switchMap((recordNames: string[]) => {
       let recordObservables = recordNames.map(recordName => {
-        let record = this._createRecord(recordName);
+        let recordFQN = `${query.table}/${recordName}`;
+        let record = this._createRecord(recordFQN);
         return record.get();
       });
 

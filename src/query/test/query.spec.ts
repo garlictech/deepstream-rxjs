@@ -5,6 +5,7 @@ import { Query } from '..';
 import { Client } from '../../client';
 import { Record } from '../../record';
 import { List } from '../../list';
+import { EventEmitter } from 'events';
 
 describe('Test Query', () => {
   let getListSpy: jasmine.Spy;
@@ -22,6 +23,9 @@ describe('Test Query', () => {
       record: {
         getList: getListSpy,
         snapshot: snapshotSpy
+      },
+      on: () => {
+        /* EMPTY */
       }
     };
   }
@@ -170,5 +174,55 @@ describe('Test Query', () => {
     let list = new MockQueryForCoverage(null);
     list.createDependencyInstances();
     expect(list.record instanceof Record).toBeTruthy();
+  });
+
+  describe('When the query has an error', () => {
+    let deleteSpy = jasmine.createSpy('delete');
+    class MockDeepstream extends EventEmitter {
+      record = {
+        getRecord: jasmine.createSpy('getRecord').and.callFake(record => {
+          return {
+            discard: jasmine.createSpy('discard'),
+            subscribe: (path, callback) => {
+              callback(data);
+            }
+          };
+        }),
+        getList: jasmine.createSpy('getList').and.callFake(name => {
+          return {
+            delete: deleteSpy,
+            subscribe: callback => {
+              callback(data);
+            }
+          };
+        }),
+        subscribe: jasmine.createSpy('subscribeSpy')
+      };
+      removeEventListener = jasmine.createSpy('removeEventListener');
+    }
+
+    it('it should pass the error to the rxjs observable', done => {
+      class MockEventClient extends Client {
+        public client = new MockDeepstream();
+      }
+
+      let mockClient = new MockEventClient('connstr');
+      let query = new Query(mockClient);
+
+      let query$ = query.queryForEntries({ tableName: tableName, query: [['title', 'match', 'test']] });
+      let subs = query$.subscribe(
+        () => {
+          /* EMPTY */
+        },
+        err => {
+          expect(err).toEqual('MESSAGE');
+          subs.unsubscribe();
+          expect(mockClient.client.removeEventListener).toHaveBeenCalledWith('error');
+          expect(deleteSpy).toHaveBeenCalled();
+          done();
+        }
+      );
+      mockClient.client.emit('error', 'ERR', 'MESSAGE');
+    });
   });
 });

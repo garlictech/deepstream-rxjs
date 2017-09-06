@@ -4,7 +4,7 @@ import { Logger } from '../logger';
 import { Record } from '../record';
 
 export class List {
-  private _list;
+  protected _list;
 
   constructor(protected _client: Client, private _name: string) {
     this._list = this._client.client.record.getList(this._name);
@@ -12,7 +12,7 @@ export class List {
 
   subscribeForEntries(): Observable<string[]> {
     let observable = new Observable<any>((obs: Observer<any>) => {
-      let callback = data => obs.next(data.length === 0 ? [] : data);
+      let callback = data => obs.next(data);
       this._list.whenReady(() => this._list.subscribe(callback, true));
       return () => this._list.unsubscribe(callback);
     });
@@ -50,7 +50,7 @@ export class List {
   recordAdded() {
     let observable = new Observable<any>((obs: Observer<any>) => {
       let callback = (entry, pos) => {
-        let record = new Record(this._client, entry);
+        let record = this._createRecord(entry);
         record
           .get()
           .take(1)
