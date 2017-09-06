@@ -33,6 +33,7 @@
     "gulp-sourcemaps": "^2.6.1",
     "gulp-typescript": "^3.2.2",
     "jasmine-spec-reporter": "^4.2.1",
-    "remap-istanbul": "^0.9.5"
+    "remap-istanbul": "^0.9.5",
+    "source-map-support": "^0.4.17"
   }
 }
