@@ -27,7 +27,6 @@ export class List {
         this._list.subscribe(callback, true);
       });
 
-      this._list.subscribe(callback, false);
       return () => {
         this._list.unsubscribe(callback);
         this._list.removeEventListener('error');
