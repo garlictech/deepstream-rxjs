@@ -46,8 +46,12 @@ export class Record {
 
   public exists(): Observable<boolean> {
     return new Observable<boolean>((obs: Observer<boolean>) => {
-      let callback = exists => {
+      let callback = (err, exists) => {
         obs.next(exists);
+        if (err) {
+          obs.error(err);
+        }
+
         obs.complete();
       };
       this._client.client.record.has(this._name, callback);
