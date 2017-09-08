@@ -1,9 +1,9 @@
-import { Observable, Observer, Subject, Subscription } from 'rxjs';
+import {Observable, Observer, Subject, Subscription} from 'rxjs';
 
 let deepstream = require('deepstream.io-client-js');
 
-import { Logger } from '../logger';
-import { IProviderConnectionData, IConnectionData } from '../interfaces';
+import {Logger} from '../logger';
+import {IProviderConnectionData, IConnectionData} from '../interfaces';
 
 export interface IClientData {
   username: string;
@@ -81,7 +81,7 @@ export class Client {
     }
 
     // Call the native close event
-    if (this.client) {
+    if (this.client && (this.isClosed() !== true)) {
       let obs$ = Observable.create(observer => {
         this.client.on('connectionStateChanged', state => {
           if (state === 'CLOSED') {
@@ -90,12 +90,16 @@ export class Client {
           }
         });
         this.client.close();
-      }).do(() => Logger.debug(`Deepstream client is logged out`));
+      }).do(() => Logger.debug(`Deepstream client is closed`));
 
       return obs$;
     } else {
       return Observable.of(undefined);
     }
+  }
+
+  public isClosed(): boolean {
+    return this.client && this.client.getConnectionState() === deepstream.CONSTANTS.CONNECTION_STATE.CLOSED;
   }
 
   public isConnected(): boolean {
