@@ -1,9 +1,9 @@
-import {Observable, Observer, Subject, Subscription} from 'rxjs';
+import { Observable, Observer, Subject, Subscription } from 'rxjs';
 
 let deepstream = require('deepstream.io-client-js');
 
-import {Logger} from '../logger';
-import {IProviderConnectionData, IConnectionData} from '../interfaces';
+import { Logger } from '../logger';
+import { IProviderConnectionData, IConnectionData } from '../interfaces';
 
 export interface IClientData {
   username: string;
