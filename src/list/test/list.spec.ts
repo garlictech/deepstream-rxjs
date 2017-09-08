@@ -12,6 +12,7 @@ describe('Test List', () => {
   let removeEntrySpy: jasmine.Spy;
   let getListSpy: jasmine.Spy;
   let subscribeSpy: jasmine.Spy;
+  let isEmptySpy = jasmine.createSpy('isEmpty').and.returnValue(false);
   let client;
   let snapshotSpy: jasmine.Spy;
   let setDataSpy: jasmine.Spy;
@@ -19,6 +20,7 @@ describe('Test List', () => {
   let getRecordSpy: jasmine.Spy;
   let discardSpy: jasmine.Spy;
   let listOffSpy: jasmine.Spy;
+  let listOnSpy: jasmine.Spy;
 
   let data = ['data1', 'data2'];
   let data2 = ['data3', 'data4'];
@@ -55,8 +57,13 @@ describe('Test List', () => {
   }
 
   class MockRawList extends EventEmitter {
+    // constructor() {
+    //   super();
+    //   this.on = listOnSpy;
+    // }
     whenReady = callback => callback();
     subscribe = subscribeSpy;
+    isEmpty = isEmptySpy;
     unsubscribe() {
       /* EMPTY */
     }
@@ -84,6 +91,7 @@ describe('Test List', () => {
     removeEntrySpy = jasmine.createSpy('removeEntry');
     discardSpy = jasmine.createSpy('discardSpy');
     listOffSpy = jasmine.createSpy('listOffSpy');
+    listOnSpy = jasmine.createSpy('listOnSpy');
 
     getListSpy = jasmine.createSpy('getList').and.callFake(name => {
       rawList = new MockRawList();
@@ -94,7 +102,7 @@ describe('Test List', () => {
   });
 
   describe('When we try to get the data as stream of entries', () => {
-    it('should return an observable', async () => {
+    it('it should return an observable', async () => {
       let list = new MockList(client, listName);
       let list$ = list.subscribeForEntries();
       expect(list$ instanceof Observable).toBeTruthy();
@@ -110,7 +118,7 @@ describe('Test List', () => {
   });
 
   describe('When we try to get the data as stream of data objects', () => {
-    it('should return an observable', async () => {
+    it('it should return an observable', async () => {
       let list = new MockList(client, listName);
       let list$ = list.subscribeForData();
       expect(list$ instanceof Observable).toBeTruthy();
@@ -150,6 +158,12 @@ describe('Test List', () => {
             },
             unsubscribe: () => {
               /* EMPTY */
+            },
+            on: () => {
+              /* EMPTY */
+            },
+            isEmpty: () => {
+              return false;
             }
           };
         });
