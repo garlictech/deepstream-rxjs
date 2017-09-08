@@ -31,47 +31,48 @@ export class Client {
   public login(authData: IProviderConnectionData | IConnectionData): Observable<IClientData> {
     let loginSubject = new Subject<IClientData>();
 
-    if (this.client) {
-      this.client.close();
-    }
+    // First close the active connection
+    this
+      .close()
+      .subscribe(() => {
+        Logger.debug('Deepstream client is logging in.');
+        Logger.debug('Login data: ', JSON.stringify(authData, null, 2));
+        this.client = Client.GetDependencies().deepstream(this._connectionString);
 
-    if (this.subscribtion) {
-      this.subscribtion.unsubscribe();
-    }
+        this.client.login(authData, (success, data) => {
+          if (success === true) {
+            // Return the clientData
+            loginSubject.next(data);
+          } else {
+            // Close the connection if error happened
+            this
+              .close()
+              .subscribe(() => {
+                loginSubject.error(new Error('Login Failed'));
+              }, loginSubject.error);
+          }
 
-    if (this.errorSubscribtion) {
-      this.errorSubscribtion.unsubscribe();
-    }
+          loginSubject.complete();
+        });
 
-    Logger.debug('Deepstream client is logging in.');
-    Logger.debug('Login data: ', JSON.stringify(authData, null, 2));
-    this.client = Client.GetDependencies().deepstream(this._connectionString);
+        // Create the subscribtions
+        this.errorSubscribtion = Observable.fromEvent(this.client, 'error')
+          .do(state => {
+            Logger.debug('Error happened: ');
+            Logger.debug(JSON.stringify(state, null, 2));
+          })
+          .subscribe(state => this.errors$.next(state));
 
-    this.client.login(authData, (success, data) => {
-      if (success === true) {
-        loginSubject.next(data);
-      } else {
-        loginSubject.error(new Error('Login Failed'));
-      }
-
-      loginSubject.complete();
-    });
-
-    this.errorSubscribtion = Observable.fromEvent(this.client, 'error')
-      .do(state => {
-        Logger.debug('Error happened: ');
-        Logger.debug(JSON.stringify(state, null, 2));
-      })
-      .subscribe(state => this.errors$.next(state));
-
-    this.subscribtion = Observable.fromEvent(this.client, 'connectionStateChanged')
-      .do(state => Logger.debug('Deepstream client connection state: ', state))
-      .subscribe(state => this.states$.next(state));
+        this.subscribtion = Observable.fromEvent(this.client, 'connectionStateChanged')
+          .do(state => Logger.debug('Deepstream client connection state: ', state))
+          .subscribe(state => this.states$.next(state));
+      });
 
     return loginSubject;
   }
 
-  public logout() {
+  public close(): Observable<void> {
+    // Unsubscribe from the active subscribtions
     if (this.subscribtion) {
       this.subscribtion.unsubscribe();
     }
@@ -80,6 +81,7 @@ export class Client {
       this.errorSubscribtion.unsubscribe();
     }
 
+    // Call the native close event
     if (this.client) {
       let obs$ = Observable.create(observer => {
         this.client.on('connectionStateChanged', state => {
@@ -93,7 +95,7 @@ export class Client {
 
       return obs$;
     } else {
-      return Observable.of({});
+      return Observable.of(undefined);
     }
   }
 
