@@ -19,6 +19,7 @@ describe('Test List', () => {
   let getRecordSpy: jasmine.Spy;
   let discardSpy: jasmine.Spy;
   let listOffSpy: jasmine.Spy;
+  let isEmptySpy: jasmine.Spy;
 
   let data = ['data1', 'data2'];
   let data2 = ['data3', 'data4'];
@@ -64,6 +65,7 @@ describe('Test List', () => {
     removeEntry = removeEntrySpy;
     discard = discardSpy;
     off = listOffSpy;
+    isEmpty = isEmptySpy;
   }
 
   beforeEach(() => {
@@ -84,6 +86,8 @@ describe('Test List', () => {
     removeEntrySpy = jasmine.createSpy('removeEntry');
     discardSpy = jasmine.createSpy('discardSpy');
     listOffSpy = jasmine.createSpy('listOffSpy');
+    isEmptySpy = jasmine.createSpy('isEmptySpy');
+    isEmptySpy.and.returnValue(false);
 
     getListSpy = jasmine.createSpy('getList').and.callFake(name => {
       rawList = new MockRawList();
@@ -105,7 +109,7 @@ describe('Test List', () => {
       expect(args[0]).toEqual(listName);
       let argsSubscribe = subscribeSpy.calls.mostRecent().args;
       expect(subscribeSpy).toHaveBeenCalled();
-      expect(argsSubscribe[1]).toBeTruthy();
+      expect(argsSubscribe[1]).toBeFalsy();
     });
   });
 
@@ -123,7 +127,7 @@ describe('Test List', () => {
       let argsSubscribe = subscribeSpy.calls.mostRecent().args;
       expect(subscribeSpy).toHaveBeenCalled();
       expect(argsSubscribe[0] instanceof Function).toBeTruthy();
-      expect(argsSubscribe[1]).toBeTruthy();
+      expect(argsSubscribe[1]).toBeFalsy();
     });
 
     describe('When the list on deepstream is empty', () => {
@@ -150,7 +154,11 @@ describe('Test List', () => {
             },
             unsubscribe: () => {
               /* EMPTY */
-            }
+            },
+            on: () => {
+              /* EMPTY */
+            },
+            isEmpty: () => false
           };
         });
 
