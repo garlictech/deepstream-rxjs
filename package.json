@@ -4,7 +4,7 @@
   "description": "Rxjs wrapper for deepstream",
   "main": "index.ts",
   "scripts": {
-    "test": "gulp systemtest",
+    "test": "gulp unittest",
     "build": "gulp build"
   },
   "author": {

@@ -7,6 +7,8 @@ import { Client } from '..';
 import { Record } from '../../record';
 
 describe('When the deepstream client is up and running, the client', () => {
+  let emitCloseEvent = false;
+
   class MockDeepstream extends EventEmitter {
     private _state = deepstream.CONSTANTS.CONNECTION_STATE.OPEN;
     constructor() {
@@ -36,6 +38,9 @@ describe('When the deepstream client is up and running, the client', () => {
 
     public close = jasmine.createSpy('close').and.callFake(() => {
       this._state = deepstream.CONSTANTS.CLOSED;
+      if (emitCloseEvent === true) {
+        this.emit('connectionStateChanged', 'CLOSED');
+      }
     });
 
     public getConnectionState() {
@@ -49,6 +54,7 @@ describe('When the deepstream client is up and running, the client', () => {
   let connectionString = 'foobar';
 
   beforeEach(() => {
+    emitCloseEvent = false;
     mockDeepstream = new MockDeepstream();
 
     deepstreamStub = jasmine.createSpy('deepstreamStub').and.callFake(() => {
@@ -113,6 +119,7 @@ describe('When the deepstream client is up and running, the client', () => {
   it('should throw error when login fails', done => {
     let client = new Client(connectionString);
     expect(client.isConnected()).toBeFalsy();
+    emitCloseEvent = true;
 
     client.login(loginData).subscribe(
       loginResponse => {
@@ -124,6 +131,7 @@ describe('When the deepstream client is up and running, the client', () => {
         expect(deepstreamStub).toHaveBeenCalledWith(connectionString);
         expect(Client.GetDependencies).toHaveBeenCalled();
         expect(mockDeepstream.login).toHaveBeenCalled();
+        expect(mockDeepstream.close).toHaveBeenCalled();
         args = mockDeepstream.login.calls.mostRecent().args;
         expect(args[0]).toEqual(loginData);
         expect(client.isConnected()).toBeFalsy();
@@ -143,13 +151,13 @@ describe('When the deepstream client is up and running, the client', () => {
     mockDeepstream.emit('connectionStateChanged', 'OPEN');
   });
 
-  it('should be able to logout', async done => {
+  it('should be able to close the connection', async done => {
     let client = new Client(connectionString);
     client
       .login(loginData)
       .do(() => expect(client.isConnected()).toBeTruthy())
       .switchMap(() => {
-        let res$ = client.logout();
+        let res$ = client.close();
         return res$;
       })
       .subscribe(() => {
@@ -160,14 +168,14 @@ describe('When the deepstream client is up and running, the client', () => {
       });
 
     mockDeepstream.emit('connectionStateChanged', 'OPEN');
-    // This will test if the logout observer emits only at the 'close' event
+    // This will test if the close observer emits only at the 'close' event
     mockDeepstream.emit('connectionStateChanged', 'FOOBAR');
     mockDeepstream.emit('connectionStateChanged', 'CLOSED');
   });
 
-  it('should handle logout request even if the client is logged out', done => {
+  it('should handle close request even if the client is not connected', done => {
     let client = new Client(connectionString);
-    client.logout().subscribe(() => {
+    client.close().subscribe(() => {
       expect(mockDeepstream.close).not.toHaveBeenCalled();
       done();
     });
@@ -175,6 +183,8 @@ describe('When the deepstream client is up and running, the client', () => {
 
   it('should handle re-login: if the client is logged in, close the connection', done => {
     let client = new Client(connectionString);
+    emitCloseEvent = true;
+
     client
       .login(loginData)
       .do(() => {
