@@ -43,6 +43,7 @@ export class Client {
           if (success === true) {
             // Return the clientData
             loginSubject.next(data);
+            loginSubject.complete();
           } else {
             // Close the connection if error happened
             this
@@ -51,8 +52,6 @@ export class Client {
                 loginSubject.error(new Error('Login Failed'));
               }, loginSubject.error);
           }
-
-          loginSubject.complete();
         });
 
         // Create the subscribtions
@@ -66,7 +65,7 @@ export class Client {
         this.subscribtion = Observable.fromEvent(this.client, 'connectionStateChanged')
           .do(state => Logger.debug('Deepstream client connection state: ', state))
           .subscribe(state => this.states$.next(state));
-      });
+      }, loginSubject.error);
 
     return loginSubject;
   }
