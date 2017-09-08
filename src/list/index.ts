@@ -12,9 +12,26 @@ export class List {
 
   subscribeForEntries(): Observable<string[]> {
     let observable = new Observable<any>((obs: Observer<any>) => {
-      let callback = data => obs.next(data);
-      this._list.whenReady(() => this._list.subscribe(callback, true));
-      return () => this._list.unsubscribe(callback);
+      let callback = data => {
+        obs.next(data);
+      };
+
+      this._list.on('error', (err, msg) => {
+        obs.error(msg);
+      });
+
+      this._list.whenReady(() => {
+        if (this._list.isEmpty()) {
+          callback([]);
+        }
+        this._list.subscribe(callback, true);
+      });
+
+      this._list.subscribe(callback, false);
+      return () => {
+        this._list.unsubscribe(callback);
+        this._list.removeEventListener('error');
+      };
     });
 
     return observable;
