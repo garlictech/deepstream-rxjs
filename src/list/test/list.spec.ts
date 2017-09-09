@@ -31,15 +31,7 @@ describe('Test List', () => {
   let recordNames = ['record1', 'record2'];
   let rawList: MockRawList;
 
-  class MockClient extends Client {
-    public client = {
-      record: { getList: getListSpy, snapshot: snapshotSpy, setData: setDataSpy, getRecord: getRecordSpy },
-      getUid: () => generatedUid,
-      on: () => {
-        /* EMPTY */
-      }
-    };
-  }
+  class MockClient extends Client {}
 
   class MockRecord extends Record {
     static getSpy;
@@ -97,8 +89,20 @@ describe('Test List', () => {
       rawList = new MockRawList();
       return rawList;
     });
-    client = new MockClient('atyala');
     internalList = [];
+
+    class MockRawDeepstream extends EventEmitter {
+      record = { getList: getListSpy, snapshot: snapshotSpy, setData: setDataSpy, getRecord: getRecordSpy };
+      getUid = () => generatedUid;
+    }
+
+    spyOn(Client, 'GetDependencies').and.callFake(() => {
+      return {
+        deepstream: jasmine.createSpy('deepstreamStub').and.returnValue(new MockRawDeepstream())
+      };
+    });
+
+    client = new MockClient('atyala');
   });
 
   describe('When we try to get the data as stream of entries', () => {
@@ -263,5 +267,20 @@ describe('Test List', () => {
       });
       rawList.emit('entry-added', entryName, position);
     });
+  });
+
+  it('should throw error when a list operation fails', done => {
+    let list = new MockList(client, listName);
+    list.subscribeForEntries().subscribe(
+      () => {
+        /* EMPTY */
+      },
+      err => {
+        expect('TESTERROR').toEqual(err);
+        done();
+      }
+    );
+
+    client.errors$.next('TESTERROR');
   });
 });
