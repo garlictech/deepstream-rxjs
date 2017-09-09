@@ -33,7 +33,7 @@ export class Query {
       let recordObservables = recordNames.map(recordName => {
         let recordFQN = `${query.table}/${recordName}`;
         let record = this._createRecord(recordFQN);
-        return record.get();
+        return record.snapshot();
       });
 
       return Observable.combineLatest(recordObservables);
