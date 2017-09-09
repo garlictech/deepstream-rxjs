@@ -71,7 +71,6 @@ describe('Test List', () => {
     removeEntry = removeEntrySpy;
     discard = discardSpy;
     off = listOffSpy;
-    isEmpty = isEmptySpy;
   }
 
   beforeEach(() => {
@@ -114,7 +113,7 @@ describe('Test List', () => {
       expect(args[0]).toEqual(listName);
       let argsSubscribe = subscribeSpy.calls.mostRecent().args;
       expect(subscribeSpy).toHaveBeenCalled();
-      expect(argsSubscribe[1]).toBeFalsy();
+      expect(argsSubscribe[1]).toBeTruthy();
     });
   });
 
@@ -132,7 +131,7 @@ describe('Test List', () => {
       let argsSubscribe = subscribeSpy.calls.mostRecent().args;
       expect(subscribeSpy).toHaveBeenCalled();
       expect(argsSubscribe[0] instanceof Function).toBeTruthy();
-      expect(argsSubscribe[1]).toBeFalsy();
+      expect(argsSubscribe[1]).toBeTruthy();
     });
 
     describe('When the list on deepstream is empty', () => {

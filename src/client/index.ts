@@ -81,7 +81,6 @@ export class Client {
     if (this.client) {
       let obs$ = Observable.create(observer => {
         this.client.on('connectionStateChanged', state => {
-          console.log('STATE: ', state);
           if (state === 'CLOSED') {
             observer.next();
             observer.complete();
