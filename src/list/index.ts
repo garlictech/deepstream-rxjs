@@ -17,16 +17,9 @@ export class List {
       };
 
       let errorCallback = (err, msg) => obs.error(msg);
-
       this._list.on('error', errorCallback);
       let errSubscription$ = this._client.errors$.subscribe(error => errorCallback(null, error));
       this._list.subscribe(callback, true);
-
-      // this._list.whenReady(() => {
-      //   if (this._list.isEmpty()) {
-      //     callback([]);
-      //   }
-      // });
 
       return () => {
         this._list.unsubscribe(callback);
