@@ -19,19 +19,25 @@ describe('Test Record', () => {
     foo: 'bar2'
   };
 
-  class MockClient extends Client {
-    public client = {
-      record: {
-        setData: setDataSpy,
-        snapshot: snapshotSpy,
-        getRecord: getRecordSpy,
-        has: hasSpy
-      },
-      on: () => {
-        /* EMPTY */
-      }
-    };
-  }
+  class MockClient extends Client {}
+
+  beforeEach(() => {
+    spyOn(Client, 'GetDependencies').and.callFake(() => {
+      return {
+        deepstream: jasmine.createSpy('deepstreamStub').and.returnValue({
+          record: {
+            setData: setDataSpy,
+            snapshot: snapshotSpy,
+            getRecord: getRecordSpy,
+            has: hasSpy
+          },
+          on: () => {
+            /* EMPTY */
+          }
+        })
+      };
+    });
+  });
 
   describe('When we try to get the data', () => {
     it('it should return an observable', async () => {
@@ -198,14 +204,30 @@ describe('Test Record', () => {
   });
 
   describe('When we try to check if a record exists', () => {
-    it('should invoke the has method on ds', () => {
-      hasSpy = jasmine.createSpy('getRecord').and.callFake((name, cb) => cb(true));
+    it('should invoke the has method on ds', async () => {
+      hasSpy = jasmine.createSpy('has').and.callFake((name, cb) => cb(null, true));
 
       let mockClient = new MockClient('connstr');
       let record = new Record(mockClient, 'existingRecord');
-      let result = record.exists().toPromise();
+      let result = await record.exists().toPromise();
       expect(hasSpy).toHaveBeenCalledWith('existingRecord', jasmine.any(Function));
       expect(result).toBeTruthy();
+    });
+  });
+
+  describe('When we try to check if a record exists', () => {
+    it('should emit error if the operation errors', async done => {
+      hasSpy = jasmine.createSpy('has').and.callFake((name, cb) => cb('ERROR', false));
+
+      let mockClient = new MockClient('connstr');
+      let record = new Record(mockClient, 'existingRecord');
+      let result = await record
+        .exists()
+        .toPromise()
+        .catch(err => {
+          expect('ERROR').toEqual(err);
+          done();
+        });
     });
   });
 });

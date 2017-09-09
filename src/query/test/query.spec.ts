@@ -18,17 +18,7 @@ describe('Test Query', () => {
   let tableName = 'tableName';
   let recordNames = ['record1', 'record2'];
 
-  class MockClient extends Client {
-    public client = {
-      record: {
-        getList: getListSpy,
-        snapshot: snapshotSpy
-      },
-      on: () => {
-        /* EMPTY */
-      }
-    };
-  }
+  class MockClient extends Client {}
 
   class MockRecord extends Record {
     static getSpy;
@@ -64,6 +54,20 @@ describe('Test Query', () => {
         delete: () => {
           // Empty
         }
+      };
+    });
+
+    spyOn(Client, 'GetDependencies').and.callFake(() => {
+      return {
+        deepstream: jasmine.createSpy('deepstreamStub').and.returnValue({
+          record: {
+            getList: getListSpy,
+            snapshot: snapshotSpy
+          },
+          on: () => {
+            /* EMPTY */
+          }
+        })
       };
     });
   });

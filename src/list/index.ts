@@ -16,20 +16,15 @@ export class List {
         obs.next(data);
       };
 
-      this._list.on('error', (err, msg) => {
-        obs.error(msg);
-      });
-
-      this._list.whenReady(() => {
-        if (this._list.isEmpty()) {
-          callback([]);
-        }
-        this._list.subscribe(callback, true);
-      });
+      let errorCallback = (err, msg) => obs.error(msg);
+      this._list.on('error', errorCallback);
+      let errSubscription$ = this._client.errors$.subscribe(error => errorCallback(null, error));
+      this._list.subscribe(callback, true);
 
       return () => {
         this._list.unsubscribe(callback);
-        this._list.removeEventListener('error');
+        this._list.off('error', errorCallback);
+        errSubscription$.unsubscribe();
       };
     });
 
