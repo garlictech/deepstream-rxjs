@@ -32,10 +32,6 @@ export class Client {
   public login(authData: IProviderConnectionData | IConnectionData): Observable<IClientData> {
     let loginSubject = new Subject<IClientData>();
 
-    // First close the active connection
-    // this
-    // .close()
-    // .subscribe(() => {
     Logger.debug('Deepstream client is logging in.');
     Logger.debug('Login data: ', JSON.stringify(authData, null, 2));
     this.client.login(authData, (success, data) => {
@@ -62,7 +58,6 @@ export class Client {
     this.subscribtion = Observable.fromEvent(this.client, 'connectionStateChanged')
       .do(state => Logger.debug('Deepstream client connection state: ', state))
       .subscribe(state => this.states$.next(state));
-    // }, loginSubject.error);
 
     return loginSubject;
   }
