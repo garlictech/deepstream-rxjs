@@ -10,7 +10,7 @@ describe('When the deepstream client is up and running, the client', () => {
   let emitCloseEvent = false;
 
   class MockDeepstream extends EventEmitter {
-    private _state = deepstream.CONSTANTS.CONNECTION_STATE.OPEN;
+    private _state = deepstream.CONSTANTS.CONNECTION_STATE.CLOSED;
     constructor() {
       super();
     }
@@ -138,7 +138,6 @@ describe('When the deepstream client is up and running, the client', () => {
         done();
       }
     );
-
     mockDeepstream.emit('connectionStateChanged', 'TESTFAIL');
   });
 
@@ -195,7 +194,7 @@ describe('When the deepstream client is up and running, the client', () => {
         return res$;
       })
       .subscribe(() => {
-        expect(mockDeepstream.close).toHaveBeenCalled();
+        expect(mockDeepstream.close).not.toHaveBeenCalled();
         done();
       });
     mockDeepstream.emit('connectionStateChanged', 'OPEN');
