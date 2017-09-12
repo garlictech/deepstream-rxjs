@@ -11,9 +11,13 @@ export class Record {
       this._client.client.on('error', (err, msg) => {
         obs.error(msg);
       });
-      record.subscribe(path, data => {
-        obs.next(data);
-      });
+      record.subscribe(
+        path,
+        data => {
+          obs.next(data);
+        },
+        true
+      );
 
       return () => {
         this._client.client.removeEventListener('error');
