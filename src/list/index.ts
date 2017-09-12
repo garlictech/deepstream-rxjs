@@ -1,4 +1,4 @@
-import { Observable, Observer } from 'rxjs';
+import { Observable, Observer, Subject } from 'rxjs';
 import { Client } from '../client';
 import { Logger } from '../logger';
 import { Record } from '../record';
@@ -73,6 +73,15 @@ export class List {
     });
 
     return observable;
+  }
+
+  isEmpty(): Observable<boolean> {
+    let subj = new Subject<boolean>();
+    this._list.whenReady(list => {
+      subj.next(list.isEmpty());
+      subj.complete();
+    });
+    return subj;
   }
 
   protected _createRecord(recordName: string): Record {
