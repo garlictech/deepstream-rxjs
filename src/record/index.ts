@@ -47,6 +47,7 @@ export class Record {
   public exists(): Observable<boolean> {
     return new Observable<boolean>((obs: Observer<boolean>) => {
       let callback = (err, exists) => {
+        console.log('*****', err, exists);
         obs.next(exists);
         if (err) {
           obs.error(err);
