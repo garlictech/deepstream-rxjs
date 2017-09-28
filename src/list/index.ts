@@ -23,8 +23,9 @@ export class List {
 
       return () => {
         this._list.unsubscribe(callback);
-        this._list.off('error', errorCallback);
         errSubscription$.unsubscribe();
+        this._list.off('error', errorCallback);
+        this._list.discard();
       };
     });
 
