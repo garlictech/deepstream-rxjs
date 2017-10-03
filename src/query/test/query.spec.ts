@@ -131,6 +131,40 @@ describe('Test Query', () => {
     });
   });
 
+  describe('When we try to get a page of data with the query', () => {
+    it('should return an observable', async () => {
+      let client = new MockClient('atyala');
+      let query = new MockQuery(client);
+
+      let queryObject = {
+        tableName: tableName,
+        query: [['title', 'match', 'test']]
+      };
+
+      let query$ = query.pageableQuery(queryObject, 1, 2);
+
+      expect(query$ instanceof Observable).toBeTruthy();
+
+      let result = await query$.take(1).toPromise();
+      let args = getListSpy.calls.mostRecent().args;
+
+      let queryString = JSON.stringify(queryObject);
+
+      expect(args[0]).toEqual(`search?${queryString}`);
+      expect(result instanceof Array).toBeTruthy();
+      expect(result).toEqual(['value']);
+
+      let argsSubscribe = subscribeSpy.calls.mostRecent().args;
+      expect(subscribeSpy).toHaveBeenCalled();
+      expect(argsSubscribe[0] instanceof Function).toBeTruthy();
+      expect(argsSubscribe[1]).toBeTruthy();
+
+      // Just check if we can get the next data
+      result = await query$.take(1).toPromise();
+      expect(result).toEqual(['value']);
+    });
+  });
+
   describe('When data changed', () => {
     it("should call observer's next", done => {
       getListSpy = jasmine.createSpy('getList').and.callFake(name => {
