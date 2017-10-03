@@ -39,6 +39,19 @@ export class Query {
       return Observable.combineLatest(recordObservables);
     });
   }
+
+  pageableQuery(query, start, end): Observable<any> {
+    return this.queryForEntries(query).switchMap((recordNames: string[]) => {
+      let records = recordNames.slice(start, end);
+      let recordObservables = records.map(recordName => {
+        let recordFQN = `${query.table}/${recordName}`;
+        let record = this._createRecord(recordFQN);
+        return record.snapshot();
+      });
+
+      return Observable.combineLatest(recordObservables);
+    });
+  }
   protected _createRecord(recordName: string): Record {
     return new Record(this._client, recordName);
   }
