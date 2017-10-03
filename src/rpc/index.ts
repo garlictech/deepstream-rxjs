@@ -10,6 +10,8 @@ export class Rpc {
       let errSubscription$ = this._client.errors$.subscribe(error => obs.error(error));
 
       this._client.client.rpc.make(name, data, (err, result) => {
+        errSubscription$.unsubscribe();
+
         if (err) {
           try {
             obs.error(JSON.parse(err));
@@ -20,12 +22,11 @@ export class Rpc {
           obs.next(result);
           obs.complete();
         }
-        errSubscription$.unsubscribe();
-
-        return () => {
-          errSubscription$.unsubscribe();
-        };
       });
+
+      return () => {
+        errSubscription$.unsubscribe();
+      };
     });
   }
 
