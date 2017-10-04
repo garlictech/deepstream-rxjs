@@ -37,13 +37,10 @@ describe('When the rpc call is unsuccessfull', () => {
 
     let rpc = new Rpc(new Client('foobar'));
 
-    await rpc
-      .make('foo', {})
-      .toPromise()
-      .catch(err => {
-        expect(err).toEqual('ERROR');
-        done();
-      });
+    await rpc.make('foo', {}).toPromise().catch(err => {
+      expect(err).toEqual('ERROR');
+      done();
+    });
   });
 
   describe('When the error is a json object', () => {
@@ -63,12 +60,9 @@ describe('When the rpc call is unsuccessfull', () => {
 
       let rpc = new Rpc(new MockClient('foobar'));
 
-      await rpc
-        .make('foo', {})
-        .toPromise()
-        .catch(err => {
-          expect(err).toEqual(errorObj);
-        });
+      await rpc.make('foo', {}).toPromise().catch(err => {
+        expect(err).toEqual(errorObj);
+      });
     });
   });
 });
@@ -112,12 +106,9 @@ describe('When we call provide', () => {
 
     let rpc = new Rpc(new MockClient('foobar'));
 
-    await rpc
-      .make('foo', {})
-      .toPromise()
-      .catch(err => {
-        expect(err).toEqual('ERROR');
-        done();
-      });
+    await rpc.make('foo', {}).toPromise().catch(err => {
+      expect(err).toEqual('ERROR');
+      done();
+    });
   });
 });
