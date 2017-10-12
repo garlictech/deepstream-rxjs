@@ -150,10 +150,13 @@ describe('Test Record', () => {
       let client = new MockClient('atyala');
       let record = new Record(client, recordName);
 
-      await record.set(data).toPromise().catch(err => {
-        expect(err).toEqual('error');
-        done();
-      });
+      await record
+        .set(data)
+        .toPromise()
+        .catch(err => {
+          expect(err).toEqual('error');
+          done();
+        });
     });
   });
 
@@ -191,6 +194,7 @@ describe('Test Record', () => {
     }
 
     beforeEach(() => {
+      jasmine.clock().uninstall();
       jasmine.clock().install();
     });
     afterEach(() => {
@@ -240,10 +244,13 @@ describe('Test Record', () => {
 
       let mockClient = new MockClient('connstr');
       let record = new Record(mockClient, 'existingRecord');
-      let result = await record.exists().toPromise().catch(err => {
-        expect('ERROR').toEqual(err);
-        done();
-      });
+      let result = await record
+        .exists()
+        .toPromise()
+        .catch(err => {
+          expect('ERROR').toEqual(err);
+          done();
+        });
     });
   });
 
