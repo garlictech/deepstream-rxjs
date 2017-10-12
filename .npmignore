@@ -2,3 +2,4 @@
 .dockerignore
 .gitignore
 Dockerfile
+coverage
