@@ -15,6 +15,10 @@
         "url": "http://www.garlictech.com"
     },
     "license": "SEE LICENSE IN license.txt",
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/garlictech/deepstream-rxjs.git"
+    },
     "dependencies": {
         "@types/debug": "0.0.30",
         "@types/jasmine": "^2.5.54",
