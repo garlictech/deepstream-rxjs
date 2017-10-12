@@ -71,15 +71,12 @@ describe('When the rpc call is successfull', () => {
 
       let rpc = new Rpc(client);
 
-      await rpc
-        .make('foo', {})
-        .toPromise()
-        .catch(err => {
-          expect(err).toEqual('ERROR');
-          expect(client.errors$.subscribe).toHaveBeenCalled();
-          expect(unsubscribeSpy.unsubscribe).toHaveBeenCalled();
-          done();
-        });
+      await rpc.make('foo', {}).toPromise().catch(err => {
+        expect(err).toEqual('ERROR');
+        expect(client.errors$.subscribe).toHaveBeenCalled();
+        expect(unsubscribeSpy.unsubscribe).toHaveBeenCalled();
+        done();
+      });
     });
 
     describe('When the error is a json object', () => {
@@ -99,12 +96,9 @@ describe('When the rpc call is successfull', () => {
 
         let rpc = new Rpc(new MockClient('foobar'));
 
-        await rpc
-          .make('foo', {})
-          .toPromise()
-          .catch(err => {
-            expect(err).toEqual(errorObj);
-          });
+        await rpc.make('foo', {}).toPromise().catch(err => {
+          expect(err).toEqual(errorObj);
+        });
       });
     });
   });
@@ -148,13 +142,10 @@ describe('When the rpc call is successfull', () => {
 
       let rpc = new Rpc(new MockClient('foobar'));
 
-      await rpc
-        .make('foo', {})
-        .toPromise()
-        .catch(err => {
-          expect(err).toEqual('ERROR');
-          done();
-        });
+      await rpc.make('foo', {}).toPromise().catch(err => {
+        expect(err).toEqual('ERROR');
+        done();
+      });
     });
 
     describe('when the client emits an error', () => {
@@ -176,13 +167,10 @@ describe('When the rpc call is successfull', () => {
         let client = new MockClient('foobar');
         let rpc = new Rpc(client);
 
-        rpc
-          .make('foo', {})
-          .toPromise()
-          .catch(err => {
-            expect(err).toEqual('ERROR');
-            done();
-          });
+        rpc.make('foo', {}).toPromise().catch(err => {
+          expect(err).toEqual('ERROR');
+          done();
+        });
         client.errors$.next('ERROR');
       });
     });
