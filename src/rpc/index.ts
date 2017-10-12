@@ -7,17 +7,26 @@ export class Rpc {
 
   public make(name, data): Observable<any> {
     return new Observable<any>((obs: Observer<any>) => {
+      let errSubscription$ = this._client.errors$.subscribe(error => obs.error(error));
+
       this._client.client.rpc.make(name, data, (err, result) => {
+        errSubscription$.unsubscribe();
+
         if (err) {
           try {
             obs.error(JSON.parse(err));
           } catch (e) {
             obs.error(err);
           }
+        } else {
+          obs.next(result);
+          obs.complete();
         }
-        obs.next(result);
-        obs.complete();
       });
+
+      return () => {
+        errSubscription$.unsubscribe();
+      };
     });
   }
 

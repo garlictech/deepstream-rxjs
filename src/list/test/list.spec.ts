@@ -53,7 +53,7 @@ describe('Test List', () => {
     //   super();
     //   this.on = listOnSpy;
     // }
-    whenReady = callback => callback();
+    whenReady = callback => setTimeout(() => callback(rawList), 100);
     subscribe = subscribeSpy;
     isEmpty = isEmptySpy;
     unsubscribe() {
@@ -282,5 +282,25 @@ describe('Test List', () => {
     );
 
     client.errors$.next('TESTERROR');
+  });
+
+  it('isEmpty should return true when the list is empty', async done => {
+    let list = new MockList(client, listName);
+    rawList.isEmpty = jasmine.createSpy('isEmpty').and.returnValue(true);
+    let res$ = list.isEmpty().subscribe(res => {
+      expect(res).toBeTruthy();
+      expect(res$.closed);
+      done();
+    });
+  });
+
+  it('isEmpty should return false when the list is not empty', async done => {
+    let list = new MockList(client, listName);
+    rawList.isEmpty = jasmine.createSpy('isEmpty').and.returnValue(false);
+    let res$ = list.isEmpty().subscribe(res => {
+      expect(res).toBeFalsy();
+      expect(res$.closed);
+      done();
+    });
   });
 });

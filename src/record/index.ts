@@ -1,4 +1,4 @@
-import { Observable, Observer } from 'rxjs';
+import { Observable, Observer, Subject } from 'rxjs';
 import { Client } from '../client';
 import { Logger } from '../logger';
 
@@ -8,15 +8,14 @@ export class Record {
   public get(path?: string): Observable<any> {
     let record = this._client.client.record.getRecord(this._name);
     let observable = new Observable<any>((obs: Observer<any>) => {
-      this._client.client.on('error', (err, msg) => {
-        obs.error(msg);
-      });
-      record.subscribe(path, data => {
-        obs.next(data);
-      });
+      let errHandler = (err, msg) => obs.error(msg);
+      this._client.client.on('error', errHandler);
+      let statusChanged = data => obs.next(data);
+      record.subscribe(path, statusChanged, true);
 
       return () => {
-        this._client.client.removeEventListener('error');
+        this._client.client.off('error', errHandler);
+        record.unsubscribe(this._name, statusChanged);
         record.discard();
       };
     });
@@ -60,5 +59,28 @@ export class Record {
 
   public snapshot() {
     return this.get().take(1);
+  }
+
+  public remove(): Observable<boolean> {
+    return new Observable<boolean>((obs: Observer<boolean>) => {
+      let errSubscription$ = this._client.errors$.subscribe(error => obs.error(error));
+      let record = this._client.client.record.getRecord(this._name);
+
+      let cleanup = () => {
+        errSubscription$.unsubscribe();
+        record.off('error', errorCb);
+        record.off('delete', deleteCb);
+      };
+
+      let deleteCb = record.on('delete', () => {
+        obs.next(true);
+        obs.complete();
+      });
+
+      let errorCb = record.on('error', err => obs.error(err));
+      record.delete();
+
+      return () => cleanup();
+    });
   }
 }

@@ -23,8 +23,9 @@ export class List {
 
       return () => {
         this._list.unsubscribe(callback);
-        this._list.off('error', errorCallback);
         errSubscription$.unsubscribe();
+        this._list.off('error', errorCallback);
+        this._list.discard();
       };
     });
 
@@ -62,10 +63,7 @@ export class List {
     let observable = new Observable<any>((obs: Observer<any>) => {
       let callback = (entry, pos) => {
         let record = this._createRecord(entry);
-        record
-          .get()
-          .take(1)
-          .subscribe(data => obs.next({ data: data, position: pos }));
+        record.get().take(1).subscribe(data => obs.next({ data: data, position: pos }));
       };
 
       this._list.on('entry-added', callback);

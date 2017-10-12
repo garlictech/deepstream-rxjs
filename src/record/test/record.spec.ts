@@ -9,6 +9,8 @@ describe('Test Record', () => {
   let snapshotSpy: any;
   let getRecordSpy: any;
   let hasSpy: any;
+  let offSpy: jasmine.Spy;
+  let deleteSpy;
   let recordName = 'recordName';
 
   let data = {
@@ -22,6 +24,9 @@ describe('Test Record', () => {
   class MockClient extends Client {}
 
   beforeEach(() => {
+    offSpy = jasmine.createSpy('off');
+    deleteSpy = jasmine.createSpy('delete');
+
     spyOn(Client, 'GetDependencies').and.callFake(() => {
       return {
         deepstream: jasmine.createSpy('deepstreamStub').and.returnValue({
@@ -29,11 +34,13 @@ describe('Test Record', () => {
             setData: setDataSpy,
             snapshot: snapshotSpy,
             getRecord: getRecordSpy,
-            has: hasSpy
+            has: hasSpy,
+            delete: deleteSpy
           },
           on: () => {
             /* EMPTY */
-          }
+          },
+          off: offSpy
         })
       };
     });
@@ -48,6 +55,9 @@ describe('Test Record', () => {
             callback(data);
           },
           unsubscribe: () => {
+            /* Empty */
+          },
+          discard: () => {
             /* Empty */
           }
         };
@@ -66,6 +76,7 @@ describe('Test Record', () => {
       expect(args[0]).toEqual(recordName);
       expect(result instanceof Object).toBeTruthy();
       expect(result.foo).toEqual(data.foo);
+      expect(offSpy).toHaveBeenCalled();
     });
 
     it("should call observer's next when data changed", done => {
@@ -139,13 +150,10 @@ describe('Test Record', () => {
       let client = new MockClient('atyala');
       let record = new Record(client, recordName);
 
-      await record
-        .set(data)
-        .toPromise()
-        .catch(err => {
-          expect(err).toEqual('error');
-          done();
-        });
+      await record.set(data).toPromise().catch(err => {
+        expect(err).toEqual('error');
+        done();
+      });
     });
   });
 
@@ -165,11 +173,13 @@ describe('Test Record', () => {
 
   describe('When the record subscription has error', () => {
     let discardSpy = jasmine.createSpy('discard');
+    let unsubscribeSpy = jasmine.createSpy('unsubscribe');
     class MockDeepstream extends EventEmitter {
       record = {
         getRecord: jasmine.createSpy('getRecord').and.callFake(name => {
           return {
             discard: discardSpy,
+            unsubscribe: unsubscribeSpy,
             subscribe: (path, callback) => {
               callback(data);
             }
@@ -177,8 +187,15 @@ describe('Test Record', () => {
         }),
         subscribe: jasmine.createSpy('subscribeSpy')
       };
-      removeEventListener = jasmine.createSpy('removeEventListener');
+      off = offSpy;
     }
+
+    beforeEach(() => {
+      jasmine.clock().install();
+    });
+    afterEach(() => {
+      jasmine.clock().uninstall();
+    });
 
     it('it should pass the error to the rxjs observable', done => {
       class MockEventClient extends Client {
@@ -193,8 +210,11 @@ describe('Test Record', () => {
         },
         err => {
           expect(err).toEqual('MESSAGE');
+          expect(discardSpy).not.toHaveBeenCalled();
           subs.unsubscribe();
-          expect(mockClient.client.removeEventListener).toHaveBeenCalledWith('error');
+          expect(offSpy.calls.mostRecent().args[0]).toEqual('error');
+          // This is for bug https://github.com/deepstreamIO/deepstream.io-client-js/issues/204
+          jasmine.clock().tick(501);
           expect(discardSpy).toHaveBeenCalled();
           done();
         }
@@ -206,7 +226,6 @@ describe('Test Record', () => {
   describe('When we try to check if a record exists', () => {
     it('should invoke the has method on ds', async () => {
       hasSpy = jasmine.createSpy('has').and.callFake((name, cb) => cb(null, true));
-
       let mockClient = new MockClient('connstr');
       let record = new Record(mockClient, 'existingRecord');
       let result = await record.exists().toPromise();
@@ -221,13 +240,98 @@ describe('Test Record', () => {
 
       let mockClient = new MockClient('connstr');
       let record = new Record(mockClient, 'existingRecord');
-      let result = await record
-        .exists()
-        .toPromise()
-        .catch(err => {
-          expect('ERROR').toEqual(err);
+      let result = await record.exists().toPromise().catch(err => {
+        expect('ERROR').toEqual(err);
+        done();
+      });
+    });
+  });
+
+  describe('When removing an existing object', () => {
+    let client;
+    let unsubscribeSpy;
+    let mockRecord;
+
+    class MockRecord extends EventEmitter {
+      constructor() {
+        super();
+      }
+
+      delete = deleteSpy;
+      off = offSpy;
+    }
+
+    beforeEach(() => {
+      mockRecord = new MockRecord();
+      getRecordSpy = jasmine.createSpy('getRecord').and.returnValue(mockRecord);
+      client = new MockClient('connstr');
+    });
+
+    it('it should be ok', done => {
+      unsubscribeSpy = { unsubscribe: jasmine.createSpy('unsubscribeSpy') };
+      spyOn(client.errors$, 'subscribe').and.returnValue(unsubscribeSpy);
+      let record = new Record(client, 'record');
+      let subs$ = record.remove().subscribe(res => {
+        expect(res).toBeTruthy();
+        expect(getRecordSpy).toHaveBeenCalled();
+        expect(deleteSpy).toHaveBeenCalled();
+        expect(client.errors$.subscribe).toHaveBeenCalled();
+        // Wait for the unsubscription
+        setTimeout(() => {
+          expect(offSpy).toHaveBeenCalledTimes(2);
+          expect(unsubscribeSpy.unsubscribe).toHaveBeenCalled();
           done();
-        });
+        }, 10);
+      });
+
+      mockRecord.emit('delete');
+    });
+
+    it('should call the error handlers if there is any record error', done => {
+      unsubscribeSpy = { unsubscribe: jasmine.createSpy('unsubscribeSpy') };
+      spyOn(client.errors$, 'subscribe').and.returnValue(unsubscribeSpy);
+      let record = new Record(client, 'record');
+      let subs$ = record.remove().subscribe(
+        res => {
+          /* EMPTY */
+        },
+        error => {
+          expect(error).toEqual('ERROR');
+          expect(getRecordSpy).toHaveBeenCalled();
+          expect(deleteSpy).toHaveBeenCalled();
+          expect(client.errors$.subscribe).toHaveBeenCalled();
+          // Wait for the unsubscription
+          setTimeout(() => {
+            expect(offSpy).toHaveBeenCalledTimes(2);
+            expect(unsubscribeSpy.unsubscribe).toHaveBeenCalled();
+            done();
+          }, 10);
+        }
+      );
+
+      mockRecord.emit('error', 'ERROR');
+    });
+
+    it('should call the error handlers if there is any client error', done => {
+      let record = new Record(client, 'record');
+      let subs$ = record.remove().subscribe(
+        res => {
+          /* EMPTY */
+        },
+        error => {
+          expect(error).toEqual('ERROR');
+          expect(getRecordSpy).toHaveBeenCalled();
+          expect(deleteSpy).toHaveBeenCalled();
+          // Wait for the unsubscription
+          setTimeout(() => {
+            expect(offSpy).toHaveBeenCalledTimes(2);
+            expect(unsubscribeSpy.unsubscribe).toHaveBeenCalled();
+            done();
+          }, 10);
+        }
+      );
+
+      client.errors$.next('ERROR');
     });
   });
 });
