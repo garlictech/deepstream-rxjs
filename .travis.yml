@@ -11,6 +11,13 @@ before_script:
   - npm install -g gulp-cli
 script:
   - gulp
+deploy:
+  provider: script
+  script: npm run release
+  skip_cleanup: true
+  on:
+    repo: garlictech/deepstream-rxjs
+    branch: master
 notifications:
   slack:
     rooms:
@@ -18,4 +25,3 @@ notifications:
 branches:
   only:
   - master
-  - stable
