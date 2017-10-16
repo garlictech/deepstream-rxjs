@@ -1,10 +1,11 @@
-const gulp = require('gulp');
-const jasmine = require('gulp-jasmine');
-const ts = require('gulp-typescript');
-const istanbul = require('gulp-istanbul');
-const SpecReporter = require('jasmine-spec-reporter').SpecReporter;
+const gulp          = require('gulp');
+const jasmine       = require('gulp-jasmine');
+const ts            = require('gulp-typescript');
+const istanbul      = require('gulp-istanbul');
+const SpecReporter  = require('jasmine-spec-reporter').SpecReporter;
 const remapIstanbul = require('remap-istanbul/lib/gulpRemapIstanbul');
-const p = require('gulp-load-plugins')();
+const p             = require('gulp-load-plugins')();
+const merge         = require('merge2');
 
 const tsProject = ts.createProject('tsconfig.json');
 
@@ -20,12 +21,20 @@ function remapCoverageFiles() {
 }
 
 gulp.task('build', () => {
-    return gulp
-        .src('src/**/*.ts')
-        .pipe(p.sourcemaps.init())
-        .pipe(tsProject())
-        .js.pipe(p.sourcemaps.write())
-        .pipe(gulp.dest('dist/'));
+  let tsResult = gulp
+    .src('src/**/*.ts')
+    .pipe(p.sourcemaps.init())
+    .pipe(tsProject());
+
+
+  return merge([
+    tsResult.dts
+      .pipe(gulp.dest('dist/')),
+
+    tsResult.js
+      .pipe(p.sourcemaps.write())
+      .pipe(gulp.dest('dist/'))
+  ]);
 });
 
 gulp.task('pre-test', ['build'], () => {
