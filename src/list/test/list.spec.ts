@@ -33,7 +33,7 @@ describe('Test List', () => {
 
   class MockClient extends Client {}
 
-  class MockRecord extends Record {
+  class MockRecord extends Record<string> {
     static getSpy;
     constructor(_client, recordName) {
       super(_client, recordName);
@@ -42,7 +42,7 @@ describe('Test List', () => {
     }
   }
 
-  class MockList extends List {
+  class MockList extends List<string> {
     public _createRecord(recordName) {
       return new MockRecord(this._client, recordName);
     }
@@ -237,7 +237,7 @@ describe('Test List', () => {
   });
 
   it('Test the dependency creator functions', () => {
-    class MockListForCoverage extends List {
+    class MockListForCoverage extends List<string> {
       public record;
       public createDependencyInstances() {
         this.record = this._createRecord('name');
