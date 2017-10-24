@@ -6,7 +6,9 @@ import { Logger } from '../logger';
 import { IProviderConnectionData, IConnectionData } from '../interfaces';
 
 export interface IClientData {
-  username: string;
+  id: string;
+  roles?: string[];
+  permissionRecord?: string;
 }
 
 export class Client {
