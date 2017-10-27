@@ -191,6 +191,7 @@ describe('Test Record', () => {
     }
 
     beforeEach(() => {
+      jasmine.clock().uninstall();
       jasmine.clock().install();
     });
     afterEach(() => {

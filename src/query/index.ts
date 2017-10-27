@@ -6,8 +6,11 @@ import { Logger } from '../logger';
 export class Query {
   constructor(protected _client: Client) {}
 
-  queryForEntries(query: any): Observable<any> {
-    let queryString = JSON.stringify(query);
+  queryForEntries(queryOrHash: any): Observable<any> {
+    let queryString = queryOrHash;
+    if (typeof queryOrHash !== 'string') {
+      queryString = JSON.stringify(queryOrHash);
+    }
     let name = `search?${queryString}`;
     let list = this._client.client.record.getList(name);
 
@@ -28,10 +31,12 @@ export class Query {
     return observable;
   }
 
-  queryForData(query: any): Observable<any> {
-    return this.queryForEntries(query).switchMap((recordNames: string[]) => {
+  queryForData(queryOrHash: any, table?: string): Observable<any> {
+    return this.queryForEntries(queryOrHash).switchMap((recordNames: string[]) => {
       let recordObservables = recordNames.map(recordName => {
-        let recordFQN = `${query.table}/${recordName}`;
+        let tableName = table || queryOrHash.table;
+        let recordFQN = `${tableName}/${recordName}`;
+        Logger.debug('theres a record' + recordFQN);
         let record = this._createRecord(recordFQN);
         return record.snapshot();
       });
@@ -40,11 +45,12 @@ export class Query {
     });
   }
 
-  pageableQuery(query, start, end): Observable<any> {
-    return this.queryForEntries(query).switchMap((recordNames: string[]) => {
+  pageableQuery(queryOrHash, start, end, table?): Observable<any> {
+    return this.queryForEntries(queryOrHash).switchMap((recordNames: string[]) => {
       let records = recordNames.slice(start, end);
       let recordObservables = records.map(recordName => {
-        let recordFQN = `${query.table}/${recordName}`;
+        let tableName = table || queryOrHash.table;
+        let recordFQN = `${tableName}/${recordName}`;
         let record = this._createRecord(recordFQN);
         return record.snapshot();
       });

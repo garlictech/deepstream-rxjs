@@ -1,6 +1,6 @@
 import { Observable, Observer, Subject, Subscription } from 'rxjs';
 
-let deepstream = require('deepstream.io-client-js');
+let deepstream = require('deepstream.io-client-js'); // tslint:disable-line:no-var-requires
 
 import { Logger } from '../logger';
 import { IProviderConnectionData, IConnectionData } from '../interfaces';
