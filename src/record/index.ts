@@ -2,15 +2,19 @@ import { Observable, Observer, Subject } from 'rxjs';
 import { Client } from '../client';
 import { Logger } from '../logger';
 
-export class Record {
+export class Record<T = any> {
   constructor(private _client: Client, private _name: string) {}
 
-  public get(path?: string): Observable<any> {
+  public get(path?: string): Observable<T> {
     let record = this._client.client.record.getRecord(this._name);
-    let observable = new Observable<any>((obs: Observer<any>) => {
+    let observable = new Observable<T>((obs: Observer<T>) => {
       let errHandler = (err, msg) => obs.error(msg);
       this._client.client.on('error', errHandler);
-      let statusChanged = data => obs.next(data);
+
+      let statusChanged = data => {
+        obs.next(<T>data);
+      };
+
       record.subscribe(path, statusChanged, true);
 
       return () => {
@@ -23,9 +27,9 @@ export class Record {
     return observable;
   }
 
-  public set(value: any): Observable<void>;
-  public set(field: string, value: any): Observable<void>;
-  public set(fieldOrValue: any, value?: any): Observable<void> {
+  public set(value: T): Observable<void>;
+  public set(field: keyof T, value: any): Observable<void>;
+  public set(fieldOrValue: (keyof T|T), value?: any): Observable<void> {
     return new Observable<void>((obs: Observer<void>) => {
       let callback = err => {
         if (err) {

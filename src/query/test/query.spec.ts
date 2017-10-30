@@ -20,7 +20,7 @@ describe('Test Query', () => {
 
   class MockClient extends Client {}
 
-  class MockRecord extends Record {
+  class MockRecord extends Record<string> {
     static getSpy;
     constructor(_client, recordName) {
       super(_client, recordName);
@@ -29,9 +29,24 @@ describe('Test Query', () => {
     }
   }
 
-  class MockQuery extends Query {
+  class MockRecordAny extends Record {
+    static getSpy;
+    constructor(_client, recordName) {
+      super(_client, recordName);
+      MockRecord.getSpy = jasmine.createSpy('get').and.returnValue(Observable.of('value'));
+      this.get = MockRecord.getSpy;
+    }
+  }
+
+  class MockQuery extends Query<string> {
     _createRecord(recordName) {
       return new MockRecord(this._client, recordName);
+    }
+  }
+
+  class MockQueryAny extends Query {
+    _createRecord(recordName) {
+      return new MockRecordAny(this._client, recordName);
     }
   }
 
@@ -101,6 +116,38 @@ describe('Test Query', () => {
     it('should return an observable', async () => {
       let client = new MockClient('atyala');
       let query = new MockQuery(client);
+
+      let queryObject = {
+        tableName: tableName,
+        query: [['title', 'match', 'test']]
+      };
+
+      let query$ = query.queryForData(queryObject);
+
+      expect(query$ instanceof Observable).toBeTruthy();
+
+      let result = await query$.take(1).toPromise();
+      let args = getListSpy.calls.mostRecent().args;
+
+      let queryString = JSON.stringify(queryObject);
+
+      expect(args[0]).toEqual(`search?${queryString}`);
+      expect(result instanceof Array).toBeTruthy();
+      expect(result).toEqual(['value', 'value']);
+
+      let argsSubscribe = subscribeSpy.calls.mostRecent().args;
+      expect(subscribeSpy).toHaveBeenCalled();
+      expect(argsSubscribe[0] instanceof Function).toBeTruthy();
+      expect(argsSubscribe[1]).toBeTruthy();
+
+      // Just check if we can get the next data
+      result = await query$.take(1).toPromise();
+      expect(result).toEqual(['value', 'value']);
+    });
+
+    it('should work without type definition', async () => {
+      let client = new MockClient('atyala');
+      let query = new MockQueryAny(client);
 
       let queryObject = {
         tableName: tableName,
@@ -202,7 +249,7 @@ describe('Test Query', () => {
   });
 
   it('Test the dependency creator functions', () => {
-    class MockQueryForCoverage extends Query {
+    class MockQueryForCoverage extends Query<string> {
       public record;
       public createDependencyInstances() {
         this.record = this._createRecord('name');

@@ -3,7 +3,12 @@ import { Client } from '../client';
 import { Logger } from '../logger';
 import { Record } from '../record';
 
-export class List {
+export interface IRecordAdded<T> {
+  data: T;
+  position: number;
+};
+
+export class List<T = any> {
   protected _list;
 
   constructor(protected _client: Client, private _name: string) {
@@ -32,7 +37,7 @@ export class List {
     return observable;
   }
 
-  subscribeForData(): Observable<any> {
+  subscribeForData(): Observable<T[]> {
     return this.subscribeForEntries().switchMap((recordNames: string[]) => {
       let recordObservables = recordNames.map(recordName => this._createRecord(recordName).get());
 
@@ -48,10 +53,11 @@ export class List {
     this._list.removeEntry(entry, index);
   }
 
-  addRecord(data: any, index?: number): Observable<void> {
+  addRecord(data: T, index?: number): Observable<void> {
     let entryId = `${this._name}/${this._client.client.getUid()}`;
     this.addEntry(entryId, index);
-    let record = new Record(this._client, entryId);
+    let record = new Record<T>(this._client, entryId);
+
     return record.set(data);
   }
 
@@ -60,7 +66,7 @@ export class List {
   }
 
   recordAdded() {
-    let observable = new Observable<any>((obs: Observer<any>) => {
+    let observable = new Observable<IRecordAdded<T>>((obs: Observer<IRecordAdded<T>>) => {
       let callback = (entry, pos) => {
         let record = this._createRecord(entry);
         record.get().take(1).subscribe(data => obs.next({ data: data, position: pos }));
@@ -82,7 +88,7 @@ export class List {
     return subj;
   }
 
-  protected _createRecord(recordName: string): Record {
-    return new Record(this._client, recordName);
+  protected _createRecord(recordName: string): Record<T> {
+    return new Record<T>(this._client, recordName);
   }
 }

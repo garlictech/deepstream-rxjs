@@ -4,6 +4,11 @@ import { Record } from '..';
 import { Client } from '../../client';
 import { EventEmitter } from 'events';
 
+interface TestData {
+  foo: string;
+  name?: string;
+};
+
 describe('Test Record', () => {
   let setDataSpy: any;
   let snapshotSpy: any;
@@ -13,11 +18,11 @@ describe('Test Record', () => {
   let deleteSpy;
   let recordName = 'recordName';
 
-  let data = {
+  let data: TestData = {
     foo: 'bar'
   };
 
-  let data2 = {
+  let data2: TestData = {
     foo: 'bar2'
   };
 
@@ -47,7 +52,7 @@ describe('Test Record', () => {
   });
 
   describe('When we try to get the data', () => {
-    it('it should return an observable', async () => {
+    beforeEach(() => {
       getRecordSpy = jasmine.createSpy('getRecord').and.callFake(name => {
         return {
           whenReady: callback => callback(),
@@ -62,7 +67,26 @@ describe('Test Record', () => {
           }
         };
       });
+    });
 
+    it('it should return an observable', async () => {
+      let client = new MockClient('atyala');
+      let record = new Record<TestData>(client, recordName);
+
+      let record$ = record.get();
+      expect(record$ instanceof Observable).toBeTruthy();
+
+      let result = await record$.take(1).toPromise();
+
+      let args = getRecordSpy.calls.mostRecent().args;
+
+      expect(args[0]).toEqual(recordName);
+      expect(result instanceof Object).toBeTruthy();
+      expect(result.foo).toEqual(data.foo);
+      expect(offSpy).toHaveBeenCalled();
+    });
+
+    it('should work without type definitions', async () => {
       let client = new MockClient('atyala');
       let record = new Record(client, recordName);
 
@@ -90,12 +114,12 @@ describe('Test Record', () => {
               callback(data2);
             }, 100);
           },
-          unsubscribe: () => {}
+          unsubscribe: () => {/* Empty */}
         };
       });
 
       let client = new MockClient('atyala');
-      let record = new Record(client, recordName);
+      let record = new Record<TestData>(client, recordName);
 
       let record$ = record.get();
       expect(record$ instanceof Observable).toBeTruthy();
@@ -116,7 +140,7 @@ describe('Test Record', () => {
       });
 
       let client = new MockClient('atyala');
-      let record = new Record(client, recordName);
+      let record = new Record<TestData>(client, recordName);
       let result = await record.set(data).toPromise();
       let args = setDataSpy.calls.mostRecent().args;
       expect(args[0]).toEqual(recordName);
@@ -130,7 +154,7 @@ describe('Test Record', () => {
       });
 
       let client = new MockClient('atyala');
-      let record = new Record(client, recordName);
+      let record = new Record<TestData>(client, recordName);
       let result = await record.set('name', 'test').toPromise();
       let args = setDataSpy.calls.mostRecent().args;
 
@@ -148,7 +172,7 @@ describe('Test Record', () => {
       });
 
       let client = new MockClient('atyala');
-      let record = new Record(client, recordName);
+      let record = new Record<TestData>(client, recordName);
 
       await record.set(data).toPromise().catch(err => {
         expect(err).toEqual('error');
@@ -164,7 +188,7 @@ describe('Test Record', () => {
       });
 
       let client = new MockClient('atyala');
-      let record = new Record(client, recordName);
+      let record = new Record<TestData>(client, recordName);
       spyOn(record, 'get').and.returnValue(Observable.of({}));
       let result = await record.snapshot().toPromise();
       expect(record.get).toHaveBeenCalled();
@@ -204,7 +228,7 @@ describe('Test Record', () => {
       }
 
       let mockClient = new MockEventClient('connstr');
-      let record = new Record(mockClient, 'record');
+      let record = new Record<TestData>(mockClient, 'record');
       let subs = record.get().subscribe(
         () => {
           /* EMPTY */
@@ -228,7 +252,7 @@ describe('Test Record', () => {
     it('should invoke the has method on ds', async () => {
       hasSpy = jasmine.createSpy('has').and.callFake((name, cb) => cb(null, true));
       let mockClient = new MockClient('connstr');
-      let record = new Record(mockClient, 'existingRecord');
+      let record = new Record<TestData>(mockClient, 'existingRecord');
       let result = await record.exists().toPromise();
       expect(hasSpy).toHaveBeenCalledWith('existingRecord', jasmine.any(Function));
       expect(result).toBeTruthy();
@@ -240,7 +264,7 @@ describe('Test Record', () => {
       hasSpy = jasmine.createSpy('has').and.callFake((name, cb) => cb('ERROR', false));
 
       let mockClient = new MockClient('connstr');
-      let record = new Record(mockClient, 'existingRecord');
+      let record = new Record<TestData>(mockClient, 'existingRecord');
       let result = await record.exists().toPromise().catch(err => {
         expect('ERROR').toEqual(err);
         done();
@@ -271,7 +295,7 @@ describe('Test Record', () => {
     it('it should be ok', done => {
       unsubscribeSpy = { unsubscribe: jasmine.createSpy('unsubscribeSpy') };
       spyOn(client.errors$, 'subscribe').and.returnValue(unsubscribeSpy);
-      let record = new Record(client, 'record');
+      let record = new Record<TestData>(client, 'record');
       let subs$ = record.remove().subscribe(res => {
         expect(res).toBeTruthy();
         expect(getRecordSpy).toHaveBeenCalled();
@@ -291,7 +315,7 @@ describe('Test Record', () => {
     it('should call the error handlers if there is any record error', done => {
       unsubscribeSpy = { unsubscribe: jasmine.createSpy('unsubscribeSpy') };
       spyOn(client.errors$, 'subscribe').and.returnValue(unsubscribeSpy);
-      let record = new Record(client, 'record');
+      let record = new Record<TestData>(client, 'record');
       let subs$ = record.remove().subscribe(
         res => {
           /* EMPTY */
@@ -314,7 +338,7 @@ describe('Test Record', () => {
     });
 
     it('should call the error handlers if there is any client error', done => {
-      let record = new Record(client, 'record');
+      let record = new Record<TestData>(client, 'record');
       let subs$ = record.remove().subscribe(
         res => {
           /* EMPTY */
