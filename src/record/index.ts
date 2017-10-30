@@ -2,8 +2,17 @@ import { Observable, Observer, Subject } from 'rxjs';
 import { Client } from '../client';
 import { Logger } from '../logger';
 
+export interface IRecordData {
+  id?: string;
+  _name?: string;
+};
+
 export class Record<T = any> {
-  constructor(private _client: Client, private _name: string) {}
+  private _id: string;
+  constructor(private _client: Client, private _name: string) {
+    let parts = _name.split('/');
+    this._id = parts[parts.length - 1];
+  }
 
   public get(path?: string): Observable<T> {
     let record = this._client.client.record.getRecord(this._name);
@@ -12,6 +21,8 @@ export class Record<T = any> {
       this._client.client.on('error', errHandler);
 
       let statusChanged = data => {
+        data.id = this._id;
+        data._name = this._name;
         obs.next(<T>data);
       };
 

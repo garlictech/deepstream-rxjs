@@ -1,10 +1,10 @@
 import { Observable } from 'rxjs';
 
-import { Record } from '..';
+import { Record, IRecordData } from '..';
 import { Client } from '../../client';
 import { EventEmitter } from 'events';
 
-interface TestData {
+interface TestData extends IRecordData {
   foo: string;
   name?: string;
 };
@@ -16,7 +16,8 @@ describe('Test Record', () => {
   let hasSpy: any;
   let offSpy: jasmine.Spy;
   let deleteSpy;
-  let recordName = 'recordName';
+  let recordId = '1';
+  let recordName = `record/${recordId}`;
 
   let data: TestData = {
     foo: 'bar'
@@ -83,6 +84,8 @@ describe('Test Record', () => {
       expect(args[0]).toEqual(recordName);
       expect(result instanceof Object).toBeTruthy();
       expect(result.foo).toEqual(data.foo);
+      expect(result._name).toEqual(recordName);
+      expect(result.id).toEqual(recordId);
       expect(offSpy).toHaveBeenCalled();
     });
 
@@ -100,6 +103,8 @@ describe('Test Record', () => {
       expect(args[0]).toEqual(recordName);
       expect(result instanceof Object).toBeTruthy();
       expect(result.foo).toEqual(data.foo);
+      expect(result._name).toEqual(recordName);
+      expect(result.id).toEqual(recordId);
       expect(offSpy).toHaveBeenCalled();
     });
 
