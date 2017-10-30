@@ -85,7 +85,6 @@ describe('Test Record', () => {
       expect(result instanceof Object).toBeTruthy();
       expect(result.foo).toEqual(data.foo);
       expect(result._name).toEqual(recordName);
-      expect(result.id).toEqual(recordId);
       expect(offSpy).toHaveBeenCalled();
     });
 
@@ -104,7 +103,6 @@ describe('Test Record', () => {
       expect(result instanceof Object).toBeTruthy();
       expect(result.foo).toEqual(data.foo);
       expect(result._name).toEqual(recordName);
-      expect(result.id).toEqual(recordId);
       expect(offSpy).toHaveBeenCalled();
     });
 
