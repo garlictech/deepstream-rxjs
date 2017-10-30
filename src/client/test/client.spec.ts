@@ -24,7 +24,8 @@ describe('When the deepstream client is up and running, the client', () => {
         switch (state) {
           case 'OPEN':
             callback(true, {
-              username: 'foobar'
+              id: 'foobar',
+              roles: ['user']
             });
             break;
 
@@ -78,7 +79,7 @@ describe('When the deepstream client is up and running, the client', () => {
       expect(mockDeepstream.login).toHaveBeenCalled();
       args = mockDeepstream.login.calls.mostRecent().args;
       expect(args[0]).toEqual(loginData);
-      expect(loginResponse.username).toEqual('foobar');
+      expect(loginResponse.id).toEqual('foobar');
       expect(client.isConnected()).toBeTruthy();
       done();
     }, done.fail);
