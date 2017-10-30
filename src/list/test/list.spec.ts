@@ -42,9 +42,24 @@ describe('Test List', () => {
     }
   }
 
+  class MockRecordAny extends Record {
+    static getSpy;
+    constructor(_client, recordName) {
+      super(_client, recordName);
+      MockRecord.getSpy = jasmine.createSpy('get').and.returnValue(Observable.of('value'));
+      this.get = MockRecord.getSpy;
+    }
+  }
+
   class MockList extends List<string> {
     public _createRecord(recordName) {
       return new MockRecord(this._client, recordName);
+    }
+  }
+
+  class MockListAny extends List {
+    public _createRecord(recordName) {
+      return new MockRecordAny(this._client, recordName);
     }
   }
 
@@ -106,8 +121,22 @@ describe('Test List', () => {
   });
 
   describe('When we try to get the data as stream of entries', () => {
-    it('it should return an observable', async () => {
+    it('should return an observable', async () => {
       let list = new MockList(client, listName);
+      let list$ = list.subscribeForEntries();
+      expect(list$ instanceof Observable).toBeTruthy();
+
+      let result = await list$.take(1).toPromise();
+      let args = getListSpy.calls.mostRecent().args;
+
+      expect(args[0]).toEqual(listName);
+      let argsSubscribe = subscribeSpy.calls.mostRecent().args;
+      expect(subscribeSpy).toHaveBeenCalled();
+      expect(argsSubscribe[1]).toBeTruthy();
+    });
+
+    it('should work without type definition', async () => {
+      let list = new MockListAny(client, listName);
       let list$ = list.subscribeForEntries();
       expect(list$ instanceof Observable).toBeTruthy();
 
@@ -122,7 +151,7 @@ describe('Test List', () => {
   });
 
   describe('When we try to get the data as stream of data objects', () => {
-    it('it should return an observable', async () => {
+    it('should return an observable', async () => {
       let list = new MockList(client, listName);
       let list$ = list.subscribeForData();
       expect(list$ instanceof Observable).toBeTruthy();
@@ -139,7 +168,7 @@ describe('Test List', () => {
     });
 
     describe('When the list on deepstream is empty', () => {
-      it('it should return an empty list', async () => {
+      it('should return an empty list', async () => {
         let list = new MockList(client, listName);
         spyOn(list, 'subscribeForEntries').and.returnValue(Observable.of([]));
         let list$ = list.subscribeForData();
@@ -250,7 +279,7 @@ describe('Test List', () => {
   });
 
   describe('When subscribing for the "entry-added" event by recordAdded', () => {
-    it('it should return the new entry', done => {
+    it('should return the new entry', done => {
       const position = 898;
       const entryName = 'entryName';
       let list = new MockList(client, listName);

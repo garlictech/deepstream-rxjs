@@ -8,7 +8,7 @@ export interface IRecordAdded<T> {
   position: number;
 };
 
-export class List<T> {
+export class List<T = any> {
   protected _list;
 
   constructor(protected _client: Client, private _name: string) {

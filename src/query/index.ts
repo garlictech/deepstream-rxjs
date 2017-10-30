@@ -3,7 +3,7 @@ import { Client } from '../client';
 import { Record } from '../record';
 import { Logger } from '../logger';
 
-export class Query<T> {
+export class Query<T = any> {
   constructor(protected _client: Client) {}
 
   queryForEntries(queryOrHash: any): Observable<string[]> {

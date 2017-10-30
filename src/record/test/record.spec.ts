@@ -52,7 +52,7 @@ describe('Test Record', () => {
   });
 
   describe('When we try to get the data', () => {
-    it('it should return an observable', async () => {
+    beforeEach(() => {
       getRecordSpy = jasmine.createSpy('getRecord').and.callFake(name => {
         return {
           whenReady: callback => callback(),
@@ -67,9 +67,28 @@ describe('Test Record', () => {
           }
         };
       });
+    });
 
+    it('it should return an observable', async () => {
       let client = new MockClient('atyala');
       let record = new Record<TestData>(client, recordName);
+
+      let record$ = record.get();
+      expect(record$ instanceof Observable).toBeTruthy();
+
+      let result = await record$.take(1).toPromise();
+
+      let args = getRecordSpy.calls.mostRecent().args;
+
+      expect(args[0]).toEqual(recordName);
+      expect(result instanceof Object).toBeTruthy();
+      expect(result.foo).toEqual(data.foo);
+      expect(offSpy).toHaveBeenCalled();
+    });
+
+    it('should work without type definitions', async () => {
+      let client = new MockClient('atyala');
+      let record = new Record(client, recordName);
 
       let record$ = record.get();
       expect(record$ instanceof Observable).toBeTruthy();

@@ -2,7 +2,7 @@ import { Observable, Observer, Subject } from 'rxjs';
 import { Client } from '../client';
 import { Logger } from '../logger';
 
-export class Record<T> {
+export class Record<T = any> {
   constructor(private _client: Client, private _name: string) {}
 
   public get(path?: string): Observable<T> {
