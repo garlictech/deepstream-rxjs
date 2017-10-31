@@ -2,10 +2,6 @@ import { Observable, Observer, Subject } from 'rxjs';
 import { Client } from '../client';
 import { Logger } from '../logger';
 
-export interface IRecordData {
-  _name?: string;
-};
-
 export class Record<T = any> {
   constructor(private _client: Client, private _name: string) {}
 
@@ -16,7 +12,6 @@ export class Record<T = any> {
       this._client.client.on('error', errHandler);
 
       let statusChanged = data => {
-        data._name = this._name;
         obs.next(<T>data);
       };
 
