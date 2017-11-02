@@ -28,8 +28,8 @@ export class Record<T = any> {
   }
 
   public set(value: T): Observable<void>;
-  public set(field: keyof T, value: any): Observable<void>;
-  public set(fieldOrValue: (keyof T|T), value?: any): Observable<void> {
+  public set(field: string, value: any): Observable<void>;
+  public set(fieldOrValue: (string|T), value?: any): Observable<void> {
     return new Observable<void>((obs: Observer<void>) => {
       let callback = err => {
         if (err) {
