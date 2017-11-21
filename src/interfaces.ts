@@ -1,5 +1,5 @@
 export interface IConnectionData {
-  jwtToken: string;
+  jwtToken: string | null;
 }
 
 export interface IProviderConnectionData extends IConnectionData {
