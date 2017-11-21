@@ -2,10 +2,6 @@ import { Observable, Observer, Subject } from 'rxjs';
 import { Client } from '../client';
 import { Logger } from '../logger';
 
-export interface IRecordData {
-  _name?: string;
-};
-
 export class Record<T = any> {
   constructor(private _client: Client, private _name: string) {}
 
@@ -16,7 +12,6 @@ export class Record<T = any> {
       this._client.client.on('error', errHandler);
 
       let statusChanged = data => {
-        data._name = this._name;
         obs.next(<T>data);
       };
 
@@ -33,8 +28,8 @@ export class Record<T = any> {
   }
 
   public set(value: T): Observable<void>;
-  public set(field: keyof T, value: any): Observable<void>;
-  public set(fieldOrValue: (keyof T|T), value?: any): Observable<void> {
+  public set(field: string, value: any): Observable<void>;
+  public set(fieldOrValue: (string|T), value?: any): Observable<void> {
     return new Observable<void>((obs: Observer<void>) => {
       let callback = err => {
         if (err) {
