@@ -7,7 +7,7 @@ import { EventEmitter } from 'events';
 interface TestData {
   foo: string;
   name?: string;
-};
+}
 
 describe('Test Record', () => {
   let setDataSpy: any;
@@ -61,9 +61,6 @@ describe('Test Record', () => {
           },
           unsubscribe: () => {
             /* Empty */
-          },
-          discard: () => {
-            /* Empty */
           }
         };
       });
@@ -114,7 +111,9 @@ describe('Test Record', () => {
               callback(data2);
             }, 100);
           },
-          unsubscribe: () => {/* Empty */}
+          unsubscribe: () => {
+            /* Empty */
+          }
         };
       });
 
@@ -174,10 +173,13 @@ describe('Test Record', () => {
       let client = new MockClient('atyala');
       let record = new Record<TestData>(client, recordName);
 
-      await record.set(data).toPromise().catch(err => {
-        expect(err).toEqual('error');
-        done();
-      });
+      await record
+        .set(data)
+        .toPromise()
+        .catch(err => {
+          expect(err).toEqual('error');
+          done();
+        });
     });
   });
 
@@ -196,13 +198,11 @@ describe('Test Record', () => {
   });
 
   describe('When the record subscription has error', () => {
-    let discardSpy = jasmine.createSpy('discard');
     let unsubscribeSpy = jasmine.createSpy('unsubscribe');
     class MockDeepstream extends EventEmitter {
       record = {
         getRecord: jasmine.createSpy('getRecord').and.callFake(name => {
           return {
-            discard: discardSpy,
             unsubscribe: unsubscribeSpy,
             subscribe: (path, callback) => {
               callback(data);
@@ -235,12 +235,10 @@ describe('Test Record', () => {
         },
         err => {
           expect(err).toEqual('MESSAGE');
-          expect(discardSpy).not.toHaveBeenCalled();
           subs.unsubscribe();
           expect(offSpy.calls.mostRecent().args[0]).toEqual('error');
           // This is for bug https://github.com/deepstreamIO/deepstream.io-client-js/issues/204
           jasmine.clock().tick(501);
-          expect(discardSpy).toHaveBeenCalled();
           done();
         }
       );
@@ -265,10 +263,13 @@ describe('Test Record', () => {
 
       let mockClient = new MockClient('connstr');
       let record = new Record<TestData>(mockClient, 'existingRecord');
-      let result = await record.exists().toPromise().catch(err => {
-        expect('ERROR').toEqual(err);
-        done();
-      });
+      let result = await record
+        .exists()
+        .toPromise()
+        .catch(err => {
+          expect('ERROR').toEqual(err);
+          done();
+        });
     });
   });
 
