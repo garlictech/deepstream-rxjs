@@ -20,7 +20,6 @@ export class Record<T = any> {
       return () => {
         this._client.client.off('error', errHandler);
         record.unsubscribe(this._name, statusChanged);
-        record.discard();
       };
     });
 
@@ -29,7 +28,7 @@ export class Record<T = any> {
 
   public set(value: T): Observable<void>;
   public set(field: string, value: any): Observable<void>;
-  public set(fieldOrValue: (string|T), value?: any): Observable<void> {
+  public set(fieldOrValue: string | T, value?: any): Observable<void> {
     return new Observable<void>((obs: Observer<void>) => {
       let callback = err => {
         if (err) {
