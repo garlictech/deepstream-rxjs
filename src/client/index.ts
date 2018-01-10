@@ -25,10 +25,10 @@ export class Client {
     };
   }
 
-  public constructor(private _connectionString: string) {
+  public constructor(private _connectionString: string, options?: any) {
     this.states$ = new Subject<any>();
     this.errors$ = new Subject<Error>();
-    this.client = Client.GetDependencies().deepstream(this._connectionString);
+    this.client = Client.GetDependencies().deepstream(this._connectionString, options);
   }
 
   public login(authData: IProviderConnectionData | IConnectionData): Observable<IClientData> {

@@ -68,13 +68,14 @@ describe('When the deepstream client is up and running, the client', () => {
   });
 
   it('should connect', done => {
-    let client = new Client(connectionString);
+    let options = { foo: 'bar' };
+    let client = new Client(connectionString, options);
     expect(client.isConnected()).toBeFalsy();
 
     client.login(loginData).subscribe(loginResponse => {
       let args;
 
-      expect(deepstreamStub).toHaveBeenCalledWith(connectionString);
+      expect(deepstreamStub).toHaveBeenCalledWith(connectionString, options);
       expect(Client.GetDependencies).toHaveBeenCalled();
       expect(mockDeepstream.login).toHaveBeenCalled();
       args = mockDeepstream.login.calls.mostRecent().args;
@@ -129,7 +130,7 @@ describe('When the deepstream client is up and running, the client', () => {
       err => {
         let args;
 
-        expect(deepstreamStub).toHaveBeenCalledWith(connectionString);
+        expect(deepstreamStub).toHaveBeenCalledWith(connectionString, undefined);
         expect(Client.GetDependencies).toHaveBeenCalled();
         expect(mockDeepstream.login).toHaveBeenCalled();
         expect(mockDeepstream.close).toHaveBeenCalled();
