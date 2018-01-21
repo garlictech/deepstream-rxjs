@@ -176,6 +176,45 @@ describe('Test Query', () => {
       result = await query$.take(1).toPromise();
       expect(result).toEqual(['value', 'value']);
     });
+
+    it('should fire for empty results', async () => {
+      getListSpy = jasmine.createSpy('getList').and.callFake(name => {
+        return {
+          whenReady: callback => callback(),
+          subscribe: callback => {
+            callback([]);
+          },
+          unsubscribe: () => {
+            /* Empty */
+          }
+        };
+      });
+
+      let client = new MockClient('atyala');
+      let query = new MockQuery(client);
+
+      let queryObject = {
+        tableName: tableName,
+        query: [['title', 'match', 'noresult']]
+      };
+
+      let query$ = query.queryForData(queryObject);
+
+      expect(query$ instanceof Observable).toBeTruthy();
+
+      let result = await query$.take(1).toPromise();
+      let args = getListSpy.calls.mostRecent().args;
+
+      let queryString = JSON.stringify(queryObject);
+
+      expect(args[0]).toEqual(`search?${queryString}`);
+      expect(result instanceof Array).toBeTruthy();
+      expect(result).toEqual([]);
+
+      // Just check if we can get the next data
+      result = await query$.take(1).toPromise();
+      expect(result).toEqual([]);
+    });
   });
 
   describe('When we try to get a page of data with the query', () => {
@@ -209,6 +248,45 @@ describe('Test Query', () => {
       // Just check if we can get the next data
       result = await query$.take(1).toPromise();
       expect(result).toEqual(['value']);
+    });
+
+    it('should fire for empty results', async () => {
+      getListSpy = jasmine.createSpy('getList').and.callFake(name => {
+        return {
+          whenReady: callback => callback(),
+          subscribe: callback => {
+            callback([]);
+          },
+          unsubscribe: () => {
+            /* Empty */
+          }
+        };
+      });
+
+      let client = new MockClient('atyala');
+      let query = new MockQuery(client);
+
+      let queryObject = {
+        tableName: tableName,
+        query: [['title', 'match', 'noresult']]
+      };
+
+      let query$ = query.pageableQuery(queryObject, 1, 2);
+
+      expect(query$ instanceof Observable).toBeTruthy();
+
+      let result = await query$.take(1).toPromise();
+      let args = getListSpy.calls.mostRecent().args;
+
+      let queryString = JSON.stringify(queryObject);
+
+      expect(args[0]).toEqual(`search?${queryString}`);
+      expect(result instanceof Array).toBeTruthy();
+      expect(result).toEqual([]);
+
+      // Just check if we can get the next data
+      result = await query$.take(1).toPromise();
+      expect(result).toEqual([]);
     });
   });
 
