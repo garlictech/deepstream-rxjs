@@ -46,6 +46,21 @@ export class Record<T = any> {
     });
   }
 
+  public unset(field): Observable<void> {
+    return new Observable<void>((obs: Observer<void>) => {
+      let callback = err => {
+        if (err) {
+          obs.error(err);
+        }
+
+        obs.next(null);
+        obs.complete();
+      };
+
+      this._client.client.record.setData(this._name, field, undefined, callback);
+    });
+  }
+
   public exists(): Observable<boolean> {
     return new Observable<boolean>((obs: Observer<boolean>) => {
       let callback = (err, exists) => {

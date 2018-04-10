@@ -183,6 +183,62 @@ describe('Test Record', () => {
     });
   });
 
+  describe('When we try to unset fields', () => {
+    it('should do it', async () => {
+      setDataSpy = jasmine.createSpy('setData').and.callFake((name, pathOrData, ...rest) => {
+        let cb = rest[rest.length - 1];
+        cb();
+      });
+
+      let client = new MockClient('atyala');
+      let record = new Record<TestData>(client, recordName);
+      let result = await record.unset('foo').toPromise();
+      let args = setDataSpy.calls.mostRecent().args;
+      expect(args[0]).toEqual(recordName);
+      expect(args[1]).toEqual('foo');
+    });
+  });
+
+  describe('When the unset callback returns error', () => {
+    it('should throw error', async done => {
+      setDataSpy = jasmine.createSpy('setData').and.callFake((name, path, ...rest) => {
+        let cb = rest[rest.length - 1];
+        cb('error');
+      });
+
+      let client = new MockClient('atyala');
+      let record = new Record<TestData>(client, recordName);
+
+      await record
+        .unset('foo')
+        .toPromise()
+        .catch(err => {
+          expect(err).toEqual('error');
+          done();
+        });
+    });
+  });
+
+  describe('When the callback returns error', () => {
+    it('should throw error', async done => {
+      setDataSpy = jasmine.createSpy('setData').and.callFake((name, path, ...rest) => {
+        let cb = rest[rest.length - 1];
+        cb('error');
+      });
+
+      let client = new MockClient('atyala');
+      let record = new Record<TestData>(client, recordName);
+
+      await record
+        .set(data)
+        .toPromise()
+        .catch(err => {
+          expect(err).toEqual('error');
+          done();
+        });
+    });
+  });
+
   describe('When we try to get the snapshot of any data', () => {
     it('should do return', async () => {
       snapshotSpy = jasmine.createSpy('snapshot').and.callFake((name, cb) => {
