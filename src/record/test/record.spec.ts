@@ -196,6 +196,7 @@ describe('Test Record', () => {
       let args = setDataSpy.calls.mostRecent().args;
       expect(args[0]).toEqual(recordName);
       expect(args[1]).toEqual('foo');
+      expect(args[2]).toBeUndefined();
     });
   });
 
