@@ -138,7 +138,7 @@ describe('Test Query', () => {
       let argsSubscribe = subscribeSpy.calls.mostRecent().args;
       expect(subscribeSpy).toHaveBeenCalled();
       expect(argsSubscribe[0] instanceof Function).toBeTruthy();
-      expect(argsSubscribe[1]).toBeTruthy();
+      expect(argsSubscribe[1]).toBeUndefined();
 
       // Just check if we can get the next data
       result = await query$.take(1).toPromise();
@@ -170,7 +170,7 @@ describe('Test Query', () => {
       let argsSubscribe = subscribeSpy.calls.mostRecent().args;
       expect(subscribeSpy).toHaveBeenCalled();
       expect(argsSubscribe[0] instanceof Function).toBeTruthy();
-      expect(argsSubscribe[1]).toBeTruthy();
+      expect(argsSubscribe[1]).toBeUndefined();
 
       // Just check if we can get the next data
       result = await query$.take(1).toPromise();
@@ -210,10 +210,6 @@ describe('Test Query', () => {
       expect(args[0]).toEqual(`search?${queryString}`);
       expect(result instanceof Array).toBeTruthy();
       expect(result).toEqual([]);
-
-      // Just check if we can get the next data
-      result = await query$.take(1).toPromise();
-      expect(result).toEqual([]);
     });
   });
 
@@ -243,7 +239,7 @@ describe('Test Query', () => {
       let argsSubscribe = subscribeSpy.calls.mostRecent().args;
       expect(subscribeSpy).toHaveBeenCalled();
       expect(argsSubscribe[0] instanceof Function).toBeTruthy();
-      expect(argsSubscribe[1]).toBeTruthy();
+      expect(argsSubscribe[1]).toBeUndefined();
 
       // Just check if we can get the next data
       result = await query$.take(1).toPromise();
