@@ -20,7 +20,7 @@ export class Query<T = any> {
       });
       list.subscribe(data => {
         obs.next(data);
-      }, true);
+      });
 
       return () => {
         this._client.client.removeEventListener('error');
