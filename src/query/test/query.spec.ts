@@ -66,7 +66,7 @@ describe('Test Query', () => {
         unsubscribe: () => {
           // Empty
         },
-        delete: () => {
+        discard: () => {
           // Empty
         }
       };
@@ -106,7 +106,7 @@ describe('Test Query', () => {
 
       let queryString = JSON.stringify(queryObject);
 
-      expect(args[0]).toEqual(`search?${queryString}`);
+      expect(args[0]).toEqual(`live_${queryString}`);
       expect(result instanceof Array).toBeTruthy();
       expect(result).toEqual(recordNames);
     });
@@ -131,7 +131,7 @@ describe('Test Query', () => {
 
       let queryString = JSON.stringify(queryObject);
 
-      expect(args[0]).toEqual(`search?${queryString}`);
+      expect(args[0]).toEqual(`live_${queryString}`);
       expect(result instanceof Array).toBeTruthy();
       expect(result).toEqual(['value', 'value']);
 
@@ -163,7 +163,7 @@ describe('Test Query', () => {
 
       let queryString = JSON.stringify(queryObject);
 
-      expect(args[0]).toEqual(`search?${queryString}`);
+      expect(args[0]).toEqual(`live_${queryString}`);
       expect(result instanceof Array).toBeTruthy();
       expect(result).toEqual(['value', 'value']);
 
@@ -207,7 +207,7 @@ describe('Test Query', () => {
 
       let queryString = JSON.stringify(queryObject);
 
-      expect(args[0]).toEqual(`search?${queryString}`);
+      expect(args[0]).toEqual(`live_${queryString}`);
       expect(result instanceof Array).toBeTruthy();
       expect(result).toEqual([]);
     });
@@ -232,7 +232,7 @@ describe('Test Query', () => {
 
       let queryString = JSON.stringify(queryObject);
 
-      expect(args[0]).toEqual(`search?${queryString}`);
+      expect(args[0]).toEqual(`live_${queryString}`);
       expect(result instanceof Array).toBeTruthy();
       expect(result).toEqual(['value']);
 
@@ -276,7 +276,7 @@ describe('Test Query', () => {
 
       let queryString = JSON.stringify(queryObject);
 
-      expect(args[0]).toEqual(`search?${queryString}`);
+      expect(args[0]).toEqual(`live_${queryString}`);
       expect(result instanceof Array).toBeTruthy();
       expect(result).toEqual([]);
 
@@ -336,7 +336,7 @@ describe('Test Query', () => {
   });
 
   describe('When the query has an error', () => {
-    let deleteSpy = jasmine.createSpy('delete');
+    let discardSpy = jasmine.createSpy('discard');
     class MockDeepstream extends EventEmitter {
       record = {
         getRecord: jasmine.createSpy('getRecord').and.callFake(record => {
@@ -349,7 +349,7 @@ describe('Test Query', () => {
         }),
         getList: jasmine.createSpy('getList').and.callFake(name => {
           return {
-            delete: deleteSpy,
+            discard: discardSpy,
             subscribe: callback => {
               callback(data);
             }
@@ -377,7 +377,7 @@ describe('Test Query', () => {
           expect(err).toEqual('MESSAGE');
           subs.unsubscribe();
           expect(mockClient.client.removeEventListener).toHaveBeenCalledWith('error');
-          expect(deleteSpy).toHaveBeenCalled();
+          expect(discardSpy).toHaveBeenCalled();
           done();
         }
       );

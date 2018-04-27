@@ -11,8 +11,10 @@ export class Query<T = any> {
     if (typeof queryOrHash !== 'string') {
       queryString = JSON.stringify(queryOrHash);
     }
-    let name = `search?${queryString}`;
-    let list = this._client.client.record.getList(name);
+    let liveQueryName = `search?${queryString}`;
+    let listName = `live_${queryString}`;
+    let liveQuery = this._client.client.record.getList(liveQueryName);
+    let list = this._client.client.record.getList(listName);
 
     let observable = new Observable<string[]>((obs: Observer<string[]>) => {
       this._client.client.on('error', (err, msg) => {
@@ -24,7 +26,7 @@ export class Query<T = any> {
 
       return () => {
         this._client.client.removeEventListener('error');
-        list.delete();
+        list.discard();
       };
     });
 
