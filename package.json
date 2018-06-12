@@ -1,57 +1,57 @@
 {
-  "name": "@garlictech/deepstream-rxjs",
-  "version": "0.0.1",
-  "description": "Rxjs wrapper for deepstream",
-  "main": "dist/index.js",
-  "typings": "dist/index.d.ts",
-  "scripts": {
-    "test": "gulp unittest",
-    "build": "gulp build",
-    "release": "scripts/semantic-release.sh"
-  },
-  "files": [
-    "dist",
-    "src",
-    "index.ts"
-  ],
-  "author": {
-    "name": "Garlictech",
-    "email": "contact@garlictech.com",
-    "url": "http://www.garlictech.com"
-  },
-  "license": "SEE LICENSE IN license.txt",
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/garlictech/deepstream-rxjs.git"
-  },
-  "dependencies": {
-    "@types/debug": "0.0.30",
-    "@types/jasmine": "^2.8.2",
-    "@types/node": "^8.0.53",
-    "@types/uuid": "^3.4.3",
-    "debug": "^3.1.0",
-    "deepstream.io-client-js": "^2.3.0",
-    "rxjs": "^5.5.2",
-    "tslint": "^5.8.0",
-    "typescript": "^2.6.1",
-    "uuid": "^3.1.0"
-  },
-  "devDependencies": {
-    "gulp": "^3.9.1",
-    "gulp-istanbul": "^1.1.2",
-    "gulp-jasmine": "^2.4.2",
-    "gulp-load-plugins": "^1.5.0",
-    "gulp-sourcemaps": "^2.6.1",
-    "gulp-typescript": "^3.2.3",
-    "jasmine-spec-reporter": "^4.2.1",
-    "merge2": "^1.2.0",
-    "remap-istanbul": "^0.9.5",
-    "semantic-release": "4.3.5",
-    "source-map-support": "^0.4.18"
-  },
-  "config": {
-    "commitizen": {
-      "path": "/app/node_modules/cz-conventional-changelog"
+    "name": "@garlictech/deepstream-rxjs",
+    "version": "0.0.1",
+    "description": "Rxjs wrapper for deepstream",
+    "main": "dist/index.js",
+    "typings": "dist/index.d.ts",
+    "scripts": {
+        "test": "gulp unittest",
+        "build": "gulp build",
+        "release": "scripts/semantic-release.sh"
+    },
+    "files": [
+        "dist",
+        "src",
+        "index.ts"
+    ],
+    "author": {
+        "name": "Garlictech",
+        "email": "contact@garlictech.com",
+        "url": "http://www.garlictech.com"
+    },
+    "license": "SEE LICENSE IN license.txt",
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/garlictech/deepstream-rxjs.git"
+    },
+    "dependencies": {
+        "debug": "3.1.0",
+        "deepstream.io-client-js": "2.3.0",
+        "rxjs": "^5.0.0",
+        "uuid": "^3.1.0"
+    },
+    "devDependencies": {
+        "typescript": "^2.6.1",
+        "tslint": "^5.8.0",
+        "@types/debug": "0.0.30",
+        "@types/jasmine": "^2.8.2",
+        "@types/node": "^8.0.53",
+        "@types/uuid": "^3.4.3",
+        "gulp": "^3.9.1",
+        "gulp-istanbul": "^1.1.2",
+        "gulp-jasmine": "^2.4.2",
+        "gulp-load-plugins": "^1.5.0",
+        "gulp-sourcemaps": "^2.6.1",
+        "gulp-typescript": "^3.2.3",
+        "jasmine-spec-reporter": "^4.2.1",
+        "merge2": "^1.2.0",
+        "remap-istanbul": "^0.9.5",
+        "semantic-release": "4.3.5",
+        "source-map-support": "^0.4.18"
+    },
+    "config": {
+        "commitizen": {
+            "path": "/app/node_modules/cz-conventional-changelog"
+        }
     }
-  }
 }
