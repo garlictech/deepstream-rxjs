@@ -1,12 +1,13 @@
-import { Observable, Observer, Subject } from 'rxjs';
+import { Observable } from 'rxjs/Observable';
+import { Observer } from 'rxjs/Observer';
+import { Subject } from 'rxjs/Subject';
 import { Client } from '../client';
-import { Logger } from '../logger';
 import { Record } from '../record';
 
 export interface IRecordAdded<T> {
   data: T;
   position: number;
-};
+}
 
 export class List<T = any> {
   protected _list;
@@ -69,7 +70,10 @@ export class List<T = any> {
     let observable = new Observable<IRecordAdded<T>>((obs: Observer<IRecordAdded<T>>) => {
       let callback = (entry, pos) => {
         let record = this._createRecord(entry);
-        record.get().take(1).subscribe(data => obs.next({ data: data, position: pos }));
+        record
+          .get()
+          .take(1)
+          .subscribe(data => obs.next({ data: data, position: pos }));
       };
 
       this._list.on('entry-added', callback);

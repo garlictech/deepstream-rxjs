@@ -1,7 +1,7 @@
-import * as debug from 'debug';
-
 let logger = {
-  debug: debug('deepstream-rxjs')
+  debug: function(...args) {
+    console.log(...args);
+  }
 };
 
 export { logger as Logger };
