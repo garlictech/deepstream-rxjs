@@ -1,4 +1,5 @@
-import { Observable } from 'rxjs';
+import { Observable, of } from 'rxjs';
+import { take, skip } from 'rxjs/operators';
 import * as _ from 'lodash';
 import * as uuid from 'uuid/v1';
 import { EventEmitter } from 'events';
@@ -37,7 +38,7 @@ describe('Test List', () => {
     static getSpy;
     constructor(_client, recordName) {
       super(_client, recordName);
-      MockRecord.getSpy = jasmine.createSpy('get').and.returnValue(Observable.of('value'));
+      MockRecord.getSpy = jasmine.createSpy('get').and.returnValue(of('value'));
       this.get = MockRecord.getSpy;
     }
   }
@@ -46,7 +47,7 @@ describe('Test List', () => {
     static getSpy;
     constructor(_client, recordName) {
       super(_client, recordName);
-      MockRecord.getSpy = jasmine.createSpy('get').and.returnValue(Observable.of('value'));
+      MockRecord.getSpy = jasmine.createSpy('get').and.returnValue(of('value'));
       this.get = MockRecord.getSpy;
     }
   }
@@ -126,7 +127,7 @@ describe('Test List', () => {
       let list$ = list.subscribeForEntries();
       expect(list$ instanceof Observable).toBeTruthy();
 
-      let result = await list$.take(1).toPromise();
+      let result = await list$.pipe(take(1)).toPromise();
       let args = getListSpy.calls.mostRecent().args;
 
       expect(args[0]).toEqual(listName);
@@ -140,7 +141,7 @@ describe('Test List', () => {
       let list$ = list.subscribeForEntries();
       expect(list$ instanceof Observable).toBeTruthy();
 
-      let result = await list$.take(1).toPromise();
+      let result = await list$.pipe(take(1)).toPromise();
       let args = getListSpy.calls.mostRecent().args;
 
       expect(args[0]).toEqual(listName);
@@ -156,7 +157,7 @@ describe('Test List', () => {
       let list$ = list.subscribeForData();
       expect(list$ instanceof Observable).toBeTruthy();
 
-      let result = await list$.take(1).toPromise();
+      let result = await list$.pipe(take(1)).toPromise();
       expect(result).toEqual(['value', 'value']);
       let args = getListSpy.calls.mostRecent().args;
       expect(args[0]).toEqual(listName);
@@ -170,9 +171,9 @@ describe('Test List', () => {
     describe('When the list on deepstream is empty', () => {
       it('should return an empty list', async () => {
         let list = new MockList(client, listName);
-        spyOn(list, 'subscribeForEntries').and.returnValue(Observable.of([]));
+        spyOn(list, 'subscribeForEntries').and.returnValue(of([]));
         let list$ = list.subscribeForData();
-        let result = await list$.take(1).toPromise();
+        let result = await list$.pipe(take(1)).toPromise();
         expect(result).toEqual([]);
       });
     });
@@ -206,7 +207,7 @@ describe('Test List', () => {
         let list$ = list.subscribeForEntries();
         expect(list$ instanceof Observable).toBeTruthy();
 
-        list$.skip(1).subscribe(_list => {
+        list$.pipe(skip(1)).subscribe(_list => {
           expect(_list).toEqual(data2);
           done();
         }, done.fail);

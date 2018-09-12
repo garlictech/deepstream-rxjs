@@ -1,10 +1,9 @@
 import { EventEmitter } from 'events';
+import { tap, switchMap } from 'rxjs/operators';
 import sms = require('source-map-support');
 sms.install();
 let deepstream = require('deepstream.io-client-js');
-import { Observable } from 'rxjs';
 import { Client } from '..';
-import { Record } from '../../record';
 
 describe('When the deepstream client is up and running, the client', () => {
   let emitCloseEvent = false;
@@ -156,11 +155,13 @@ describe('When the deepstream client is up and running, the client', () => {
     let client = new Client(connectionString);
     client
       .login(loginData)
-      .do(() => expect(client.isConnected()).toBeTruthy())
-      .switchMap(() => {
-        let res$ = client.close();
-        return res$;
-      })
+      .pipe(
+        tap(() => expect(client.isConnected()).toBeTruthy()),
+        switchMap(() => {
+          let res$ = client.close();
+          return res$;
+        })
+      )
       .subscribe(() => {
         // This means that at the "FOOBAR" event no close is called
         expect(mockDeepstream.close).toHaveBeenCalledTimes(1);
@@ -188,13 +189,15 @@ describe('When the deepstream client is up and running, the client', () => {
 
     client
       .login(loginData)
-      .do(() => {
-        expect(mockDeepstream.close).not.toHaveBeenCalled();
-      })
-      .switchMap(() => {
-        let res$ = client.login(loginData);
-        return res$;
-      })
+      .pipe(
+        tap(() => {
+          expect(mockDeepstream.close).not.toHaveBeenCalled();
+        }),
+        switchMap(() => {
+          let res$ = client.login(loginData);
+          return res$;
+        })
+      )
       .subscribe(() => {
         expect(mockDeepstream.close).not.toHaveBeenCalled();
         done();

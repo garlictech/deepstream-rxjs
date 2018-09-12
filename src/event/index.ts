@@ -1,6 +1,5 @@
-import { Observable, Observer } from 'rxjs';
+import { Observable } from 'rxjs';
 import { Client } from '../client';
-import { Logger } from '../logger';
 
 export class Event<T = any> {
   constructor(private _client: Client, private _topic: string) {

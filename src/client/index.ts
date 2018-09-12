@@ -1,4 +1,5 @@
-import { Observable, Observer, Subject, Subscription } from 'rxjs';
+import { Observable, Subject, Subscription, fromEvent, of } from 'rxjs';
+import { tap } from 'rxjs/operators';
 
 let deepstream = require('deepstream.io-client-js'); // tslint:disable-line:no-var-requires
 
@@ -50,15 +51,17 @@ export class Client {
     });
 
     // Create the subscribtions
-    this.errorSubscribtion = Observable.fromEvent(this.client, 'error')
-      .do(state => {
-        Logger.debug('Error happened: ');
-        Logger.debug(JSON.stringify(state, null, 2));
-      })
+    this.errorSubscribtion = fromEvent(this.client, 'error')
+      .pipe(
+        tap(state => {
+          Logger.debug('Error happened: ');
+          Logger.debug(JSON.stringify(state, null, 2));
+        })
+      )
       .subscribe(state => this.errors$.next(state));
 
-    this.subscribtion = Observable.fromEvent(this.client, 'connectionStateChanged')
-      .do(state => Logger.debug('Deepstream client connection state: ', state))
+    this.subscribtion = fromEvent(this.client, 'connectionStateChanged')
+      .pipe(tap(state => Logger.debug('Deepstream client connection state: ', state)))
       .subscribe(state => this.states$.next(state));
 
     return loginSubject;
@@ -76,7 +79,7 @@ export class Client {
 
     // Call the native close event
     if (this.client && this.isClosed() !== true) {
-      let obs$ = Observable.create(observer => {
+      let obs$ = new Observable<void>(observer => {
         this.client.on('connectionStateChanged', state => {
           if (state === 'CLOSED') {
             observer.next();
@@ -84,11 +87,11 @@ export class Client {
           }
         });
         this.client.close();
-      }).do(() => Logger.debug(`Deepstream client is closed`));
+      }).pipe(tap(() => Logger.debug(`Deepstream client is closed`)));
 
       return obs$;
     } else {
-      return Observable.of(undefined);
+      return of(undefined);
     }
   }
 

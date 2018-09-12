@@ -1,6 +1,7 @@
-import { Observable, Observer, Subject } from 'rxjs';
+import { Observable, Observer } from 'rxjs';
+import { take } from 'rxjs/operators';
+
 import { Client } from '../client';
-import { Logger } from '../logger';
 
 export class Record<T = any> {
   constructor(private _client: Client, private _name: string) {}
@@ -76,7 +77,7 @@ export class Record<T = any> {
   }
 
   public snapshot() {
-    return this.get().take(1);
+    return this.get().pipe(take(1));
   }
 
   public remove(): Observable<boolean> {

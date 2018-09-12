@@ -1,4 +1,6 @@
-import { Observable, Observer } from 'rxjs';
+import { Observable, Observer, combineLatest, of } from 'rxjs';
+import { switchMap } from 'rxjs/operators';
+
 import { Client } from '../client';
 import { Record } from '../record';
 import { Logger } from '../logger';
@@ -34,38 +36,43 @@ export class Query<T = any> {
   }
 
   queryForData(queryOrHash: any, table?: string): Observable<T[]> {
-    return this.queryForEntries(queryOrHash).switchMap((recordNames: string[]) => {
-      if (recordNames.length === 0) {
-        return Observable.of([]);
-      }
-      let recordObservables = recordNames.map(recordName => {
-        let tableName = table || queryOrHash.table;
-        let recordFQN = `${tableName}/${recordName}`;
-        Logger.debug('theres a record' + recordFQN);
-        let record = this._createRecord(recordFQN);
-        return record.snapshot();
-      });
+    return this.queryForEntries(queryOrHash).pipe(
+      switchMap((recordNames: string[]) => {
+        if (recordNames.length === 0) {
+          return of([]);
+        }
+        let recordObservables = recordNames.map(recordName => {
+          let tableName = table || queryOrHash.table;
+          let recordFQN = `${tableName}/${recordName}`;
+          Logger.debug('theres a record' + recordFQN);
+          let record = this._createRecord(recordFQN);
+          return record.snapshot();
+        });
 
-      return Observable.combineLatest(recordObservables);
-    });
+        return combineLatest(recordObservables);
+      })
+    );
   }
 
   pageableQuery(queryOrHash, start, end, table?): Observable<T[]> {
-    return this.queryForEntries(queryOrHash).switchMap((recordNames: string[]) => {
-      if (recordNames.length === 0) {
-        return Observable.of([]);
-      }
-      let records = recordNames.slice(start, end);
-      let recordObservables = records.map(recordName => {
-        let tableName = table || queryOrHash.table;
-        let recordFQN = `${tableName}/${recordName}`;
-        let record = this._createRecord(recordFQN);
-        return record.snapshot();
-      });
+    return this.queryForEntries(queryOrHash).pipe(
+      switchMap((recordNames: string[]) => {
+        if (recordNames.length === 0) {
+          return of([]);
+        }
+        let records = recordNames.slice(start, end);
+        let recordObservables = records.map(recordName => {
+          let tableName = table || queryOrHash.table;
+          let recordFQN = `${tableName}/${recordName}`;
+          let record = this._createRecord(recordFQN);
+          return record.snapshot();
+        });
 
-      return Observable.combineLatest(recordObservables);
-    });
+        return combineLatest(recordObservables);
+      })
+    );
   }
+
   protected _createRecord(recordName: string): Record<T> {
     return new Record<T>(this._client, recordName);
   }

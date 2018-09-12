@@ -2,7 +2,6 @@ import { Subscription } from 'rxjs';
 
 import { Event } from '..';
 import { Client } from '../../client';
-import { EventEmitter } from 'events';
 
 interface TestData {
   foo: string;

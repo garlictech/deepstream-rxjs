@@ -1,10 +1,11 @@
-import { Observable } from 'rxjs';
+import { Observable, of } from 'rxjs';
+import { take, skip } from 'rxjs/operators';
+
 import * as _ from 'lodash';
 
 import { Query } from '..';
 import { Client } from '../../client';
 import { Record } from '../../record';
-import { List } from '../../list';
 import { EventEmitter } from 'events';
 
 describe('Test Query', () => {
@@ -24,7 +25,7 @@ describe('Test Query', () => {
     static getSpy;
     constructor(_client, recordName) {
       super(_client, recordName);
-      MockRecord.getSpy = jasmine.createSpy('get').and.returnValue(Observable.of('value'));
+      MockRecord.getSpy = jasmine.createSpy('get').and.returnValue(of('value'));
       this.get = MockRecord.getSpy;
     }
   }
@@ -33,7 +34,7 @@ describe('Test Query', () => {
     static getSpy;
     constructor(_client, recordName) {
       super(_client, recordName);
-      MockRecord.getSpy = jasmine.createSpy('get').and.returnValue(Observable.of('value'));
+      MockRecord.getSpy = jasmine.createSpy('get').and.returnValue(of('value'));
       this.get = MockRecord.getSpy;
     }
   }
@@ -101,7 +102,7 @@ describe('Test Query', () => {
 
       expect(query$ instanceof Observable).toBeTruthy();
 
-      let result = await query$.take(1).toPromise();
+      let result = await query$.pipe(take(1)).toPromise();
       let args = getListSpy.calls.mostRecent().args;
 
       let queryString = JSON.stringify(queryObject);
@@ -126,7 +127,7 @@ describe('Test Query', () => {
 
       expect(query$ instanceof Observable).toBeTruthy();
 
-      let result = await query$.take(1).toPromise();
+      let result = await query$.pipe(take(1)).toPromise();
       let args = getListSpy.calls.mostRecent().args;
 
       let queryString = JSON.stringify(queryObject);
@@ -141,7 +142,7 @@ describe('Test Query', () => {
       expect(argsSubscribe[1]).toBeUndefined();
 
       // Just check if we can get the next data
-      result = await query$.take(1).toPromise();
+      result = await query$.pipe(take(1)).toPromise();
       expect(result).toEqual(['value', 'value']);
     });
 
@@ -158,7 +159,7 @@ describe('Test Query', () => {
 
       expect(query$ instanceof Observable).toBeTruthy();
 
-      let result = await query$.take(1).toPromise();
+      let result = await query$.pipe(take(1)).toPromise();
       let args = getListSpy.calls.mostRecent().args;
 
       let queryString = JSON.stringify(queryObject);
@@ -173,7 +174,7 @@ describe('Test Query', () => {
       expect(argsSubscribe[1]).toBeUndefined();
 
       // Just check if we can get the next data
-      result = await query$.take(1).toPromise();
+      result = await query$.pipe(take(1)).toPromise();
       expect(result).toEqual(['value', 'value']);
     });
 
@@ -202,7 +203,7 @@ describe('Test Query', () => {
 
       expect(query$ instanceof Observable).toBeTruthy();
 
-      let result = await query$.take(1).toPromise();
+      let result = await query$.pipe(take(1)).toPromise();
       let args = getListSpy.calls.mostRecent().args;
 
       let queryString = JSON.stringify(queryObject);
@@ -227,7 +228,7 @@ describe('Test Query', () => {
 
       expect(query$ instanceof Observable).toBeTruthy();
 
-      let result = await query$.take(1).toPromise();
+      let result = await query$.pipe(take(1)).toPromise();
       let args = getListSpy.calls.mostRecent().args;
 
       let queryString = JSON.stringify(queryObject);
@@ -242,7 +243,7 @@ describe('Test Query', () => {
       expect(argsSubscribe[1]).toBeUndefined();
 
       // Just check if we can get the next data
-      result = await query$.take(1).toPromise();
+      result = await query$.pipe(take(1)).toPromise();
       expect(result).toEqual(['value']);
     });
 
@@ -271,7 +272,7 @@ describe('Test Query', () => {
 
       expect(query$ instanceof Observable).toBeTruthy();
 
-      let result = await query$.take(1).toPromise();
+      let result = await query$.pipe(take(1)).toPromise();
       let args = getListSpy.calls.mostRecent().args;
 
       let queryString = JSON.stringify(queryObject);
@@ -281,7 +282,7 @@ describe('Test Query', () => {
       expect(result).toEqual([]);
 
       // Just check if we can get the next data
-      result = await query$.take(1).toPromise();
+      result = await query$.pipe(take(1)).toPromise();
       expect(result).toEqual([]);
     });
   });
@@ -314,7 +315,7 @@ describe('Test Query', () => {
 
       expect(query$ instanceof Observable).toBeTruthy();
 
-      query$.skip(1).subscribe(result => {
+      query$.pipe(skip(1)).subscribe(result => {
         expect(result instanceof Array).toBeTruthy();
         expect(result).toEqual(data2);
         done();

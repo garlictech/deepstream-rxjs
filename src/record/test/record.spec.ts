@@ -1,4 +1,5 @@
-import { Observable } from 'rxjs';
+import { Observable, of } from 'rxjs';
+import { take, skip } from 'rxjs/operators';
 
 import { Record } from '..';
 import { Client } from '../../client';
@@ -73,7 +74,7 @@ describe('Test Record', () => {
       let record$ = record.get();
       expect(record$ instanceof Observable).toBeTruthy();
 
-      let result = await record$.take(1).toPromise();
+      let result = await record$.pipe(take(1)).toPromise();
 
       let args = getRecordSpy.calls.mostRecent().args;
 
@@ -90,7 +91,7 @@ describe('Test Record', () => {
       let record$ = record.get();
       expect(record$ instanceof Observable).toBeTruthy();
 
-      let result = await record$.take(1).toPromise();
+      let result = await record$.pipe(take(1)).toPromise();
 
       let args = getRecordSpy.calls.mostRecent().args;
 
@@ -123,7 +124,7 @@ describe('Test Record', () => {
       let record$ = record.get();
       expect(record$ instanceof Observable).toBeTruthy();
 
-      record$.skip(1).subscribe(_record => {
+      record$.pipe(skip(1)).subscribe(_record => {
         expect(_record instanceof Object).toBeTruthy();
         expect(_record.foo).toEqual('bar2');
         done();
@@ -248,7 +249,7 @@ describe('Test Record', () => {
 
       let client = new MockClient('atyala');
       let record = new Record<TestData>(client, recordName);
-      spyOn(record, 'get').and.returnValue(Observable.of({}));
+      spyOn(record, 'get').and.returnValue(of({}));
       let result = await record.snapshot().toPromise();
       expect(record.get).toHaveBeenCalled();
     });

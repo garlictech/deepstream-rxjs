@@ -1,6 +1,6 @@
-import { Observable } from 'rxjs/Observable';
-import { Observer } from 'rxjs/Observer';
-import { Subject } from 'rxjs/Subject';
+import { Observable, Subject, Observer, of, combineLatest } from 'rxjs';
+import { switchMap, take } from 'rxjs/operators';
+
 import { Client } from '../client';
 import { Record } from '../record';
 
@@ -39,11 +39,12 @@ export class List<T = any> {
   }
 
   subscribeForData(): Observable<T[]> {
-    return this.subscribeForEntries().switchMap((recordNames: string[]) => {
-      let recordObservables = recordNames.map(recordName => this._createRecord(recordName).get());
-
-      return recordObservables.length ? Observable.combineLatest(recordObservables) : Observable.of([]);
-    });
+    return this.subscribeForEntries().pipe(
+      switchMap((recordNames: string[]) => {
+        let recordObservables = recordNames.map(recordName => this._createRecord(recordName).get());
+        return recordObservables.length ? combineLatest(recordObservables) : of([]);
+      })
+    );
   }
 
   addEntry(entry: string, index?: number): void {
@@ -72,7 +73,7 @@ export class List<T = any> {
         let record = this._createRecord(entry);
         record
           .get()
-          .take(1)
+          .pipe(take(1))
           .subscribe(data => obs.next({ data: data, position: pos }));
       };
 
