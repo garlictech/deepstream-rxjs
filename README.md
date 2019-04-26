@@ -7,4 +7,12 @@
 
 Rxjs wrapper for [deepstream Javascript Client](https://deepstreamhub.com/docs/client-js/client/).
 
+## Pre-requirements
+
+You need to install rxjs before you can use this package.
+
+```
+npm install rxjs --save
+```
+
 TBD
